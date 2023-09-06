@@ -24,14 +24,12 @@
 
 /**
  * @var ThemeIcons $icons
- * @var ConfigData $configData
- * @var callable   $_getvar
- * @var Template   $this
+ * @var \SP\Domain\Config\Ports\ConfigDataInterface $configData
+ * @var callable $_getvar
+ * @var \SP\Mvc\View\TemplateInterface $this
  */
 
-use SP\Config\ConfigData;
 use SP\Core\UI\ThemeIcons;
-use SP\Mvc\View\Template;
 
 ?>
 

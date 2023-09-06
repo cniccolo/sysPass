@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Core\Messages;
@@ -34,29 +34,18 @@ final class LogMessage extends MessageBase
     /**
      * @var string Acción realizada
      */
-    protected $action;
+    protected string $action;
     /**
      * @var array Detalles de la acción en formato "detalle : descripción"
      */
-    protected $details = [];
-    /**
-     * @var int
-     */
-    protected $descriptionCounter = 0;
-    /**
-     * @var int
-     */
-    protected $detailsCounter = 0;
+    protected array $details = [];
+    protected int $descriptionCounter = 0;
+    protected int $detailsCounter = 0;
 
     /**
      * Establece los detalles de la acción realizada
-     *
-     * @param $key   string
-     * @param $value string
-     *
-     * @return $this
      */
-    public function addDetails($key, $value)
+    public function addDetails(string $key, string $value): LogMessage
     {
         if ($value === '' || $key === '') {
             return $this;
@@ -70,24 +59,16 @@ final class LogMessage extends MessageBase
 
     /**
      * Formatear una cadena para guardarla en el registro
-     *
-     * @param $string string La cadena a formatear
-     *
-     * @return string
      */
-    private function formatString($string)
+    private function formatString(string $string): string
     {
         return strip_tags($string);
     }
 
     /**
      * Establece la descripción de la acción realizada
-     *
-     * @param string $description
-     *
-     * @return $this
      */
-    public function addDescription($description = '')
+    public function addDescription(string $description = ''): LogMessage
     {
         $this->description[] = $this->formatString($description);
 
@@ -97,7 +78,7 @@ final class LogMessage extends MessageBase
     /**
      * Añadir una línea en blanco a la descripción
      */
-    public function addDescriptionLine()
+    public function addDescriptionLine(): LogMessage
     {
         $this->description[] = '';
         $this->descriptionCounter++;
@@ -107,12 +88,8 @@ final class LogMessage extends MessageBase
 
     /**
      * Componer un mensaje en formato texto
-     *
-     * @param string $delimiter
-     *
-     * @return string
      */
-    public function composeText($delimiter = PHP_EOL)
+    public function composeText(string $delimiter = PHP_EOL): string
     {
         $formatter = new TextFormatter();
 
@@ -125,24 +102,16 @@ final class LogMessage extends MessageBase
 
     /**
      * Devuelve la acción realizada
-     *
-     * @param bool $translate
-     *
-     * @return string
      */
-    public function getAction($translate = false)
+    public function getAction(bool $translate = false): string
     {
         return $translate ? __($this->action) : $this->action;
     }
 
     /**
      * Establece la acción realizada
-     *
-     * @param string $action
-     *
-     * @return $this
      */
-    public function setAction($action)
+    public function setAction(string $action): LogMessage
     {
         $this->action = $this->formatString($action);
 
@@ -151,13 +120,11 @@ final class LogMessage extends MessageBase
 
     /**
      * Devuelve la descripción de la acción realizada
-     *
-     * @param FormatterInterface $formatter
-     * @param bool               $translate
-     *
-     * @return string
      */
-    public function getDescription(FormatterInterface $formatter, $translate = false): string
+    public function getDescription(
+        FormatterInterface $formatter,
+        bool               $translate
+    ): string
     {
         if (count($this->description) === 0) {
             return '';
@@ -168,13 +135,11 @@ final class LogMessage extends MessageBase
 
     /**
      * Devuelve los detalles de la acción realizada
-     *
-     * @param FormatterInterface $formatter
-     * @param bool               $translate
-     *
-     * @return string
      */
-    public function getDetails(FormatterInterface $formatter, $translate = false): string
+    public function getDetails(
+        FormatterInterface $formatter,
+        bool               $translate
+    ): string
     {
         if (count($this->details) === 0) {
             return '';
@@ -185,18 +150,16 @@ final class LogMessage extends MessageBase
 
     /**
      * Componer un mensaje en formato HTML
-     *
-     * @return mixed
      */
-    public function composeHtml()
+    public function composeHtml(): string
     {
         $formatter = new HtmlFormatter();
 
         $message = '<div class="log-message">';
-        $message .= '<h1>' . $this->action . '</h1>';
-        $message .= '<div class="log-description">' . $this->getDescription($formatter, true) . '</div>';
-        $message .= '<div class="log-details">' . $this->getDetails($formatter, true) . '</div>';
-        $message .= '<footer>' . $this->footer . '</footer>';
+        $message .= '<h1>'.$this->action.'</h1>';
+        $message .= '<div class="log-description">'.$this->getDescription($formatter, true).'</div>';
+        $message .= '<div class="log-details">'.$this->getDetails($formatter, true).'</div>';
+        $message .= '<footer>'.join('<br/>', $this->footer).'</footer>';
         $message .= '</div>';
 
         return $message;
@@ -205,7 +168,7 @@ final class LogMessage extends MessageBase
     /**
      * Restablecer la variable de descripcion
      */
-    public function resetDescription()
+    public function resetDescription(): LogMessage
     {
         $this->description = [];
         $this->descriptionCounter = 0;
@@ -216,7 +179,7 @@ final class LogMessage extends MessageBase
     /**
      * Restablecer la variable de detalles
      */
-    public function resetDetails()
+    public function resetDetails(): LogMessage
     {
         $this->details = [];
         $this->detailsCounter = 0;
@@ -224,18 +187,12 @@ final class LogMessage extends MessageBase
         return $this;
     }
 
-    /**
-     * @return int
-     */
-    public function getDescriptionCounter()
+    public function getDescriptionCounter(): int
     {
         return $this->descriptionCounter;
     }
 
-    /**
-     * @return int
-     */
-    public function getDetailsCounter()
+    public function getDetailsCounter(): int
     {
         return $this->detailsCounter;
     }

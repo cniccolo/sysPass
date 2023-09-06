@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Notification;
@@ -33,11 +33,10 @@ use SP\Core\Exceptions\QueryException;
 use SP\Core\Messages\NotificationMessage;
 use SP\DataModel\ItemSearchData;
 use SP\DataModel\NotificationData;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\Notification\NotificationService;
-use SP\Services\ServiceException;
-use SP\Services\User\UserLoginResponse;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\Notification\Services\NotificationService;
+use SP\Domain\User\Services\UserLoginResponse;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -53,7 +52,7 @@ class NotificationServiceTest extends DatabaseTestCase
      */
     private static $context;
     /**
-     * @var NotificationService
+     * @var \SP\Domain\Notification\Ports\NotificationServiceInterface
      */
     private static $service;
 
@@ -62,14 +61,11 @@ class NotificationServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_notification.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         self::$context = $dic->get(ContextInterface::class);
 
@@ -456,7 +452,7 @@ class NotificationServiceTest extends DatabaseTestCase
 
         $this->assertEquals(0, self::$service->deleteAdminBatch([]));
 
-        $this->assertEquals(0, $this->conn->getRowCount('Notification'));
+        $this->assertEquals(0, self::getRowCount('Notification'));
 
         $this->expectException(ServiceException::class);
 
@@ -470,11 +466,11 @@ class NotificationServiceTest extends DatabaseTestCase
      */
     public function testDeleteAdmin()
     {
-        $countBefore = $this->conn->getRowCount('Notification');
+        $countBefore = self::getRowCount('Notification');
 
         self::$service->deleteAdmin(3);
 
-        $this->assertEquals($countBefore - 1, $this->conn->getRowCount('Notification'));
+        $this->assertEquals($countBefore - 1, self::getRowCount('Notification'));
 
         $this->expectException(NoSuchItemException::class);
 
@@ -548,7 +544,7 @@ class NotificationServiceTest extends DatabaseTestCase
     {
         self::$service->delete(3);
 
-        $this->assertEquals(2, $this->conn->getRowCount('Notification'));
+        $this->assertEquals(2, self::getRowCount('Notification'));
 
         $this->expectException(NoSuchItemException::class);
 
@@ -566,7 +562,7 @@ class NotificationServiceTest extends DatabaseTestCase
 
         $this->assertEquals(0, self::$service->deleteByIdBatch([]));
 
-        $this->assertEquals(1, $this->conn->getRowCount('Notification'));
+        $this->assertEquals(1, self::getRowCount('Notification'));
 
         $this->expectException(ServiceException::class);
 

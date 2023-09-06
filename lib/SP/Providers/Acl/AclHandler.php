@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,22 +19,29 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Providers\Acl;
 
-use DI\Container;
 use Exception;
-use Psr\Container\ContainerInterface;
+use SP\Core\Application;
 use SP\Core\Events\Event;
 use SP\Core\Events\EventReceiver;
+use SP\Core\Exceptions\FileNotFoundException;
+use SP\Core\Exceptions\SPException;
+use SP\Domain\Account\Services\AccountAclService;
+use SP\Domain\User\Ports\UserGroupServiceInterface;
+use SP\Domain\User\Ports\UserProfileServiceInterface;
+use SP\Domain\User\Services\UserGroupService;
+use SP\Domain\User\Services\UserProfileService;
 use SP\Providers\EventsTrait;
 use SP\Providers\Provider;
-use SP\Services\Account\AccountAclService;
-use SP\Services\UserGroup\UserGroupService;
-use SP\Services\UserProfile\UserProfileService;
+use SP\Util\FileUtil;
 use SplSubject;
+use function SP\__u;
+use function SP\logger;
+use function SP\processException;
 
 /**
  * Class AclHandler
@@ -45,29 +52,35 @@ final class AclHandler extends Provider implements EventReceiver
 {
     use EventsTrait;
 
-    const EVENTS = [
+    public const EVENTS = [
         'edit.userProfile',
         'edit.user',
         'edit.userGroup',
         'delete.user',
-        'delete.user.selection'
+        'delete.user.selection',
     ];
 
-    /**
-     * @var string
-     */
-    private $events;
-    /**
-     * @var ContainerInterface
-     */
-    private $dic;
+    private string             $events;
+    private UserProfileService $userProfileService;
+    private UserGroupService   $userGroupService;
+
+    public function __construct(
+        Application $application,
+        UserProfileServiceInterface $userProfileService,
+        UserGroupServiceInterface $userGroupService
+    ) {
+        $this->userProfileService = $userProfileService;
+        $this->userGroupService = $userGroupService;
+
+        parent::__construct($application);
+    }
 
     /**
      * Devuelve los eventos que implementa el observador
      *
      * @return array
      */
-    public function getEvents()
+    public function getEvents(): array
     {
         return self::EVENTS;
     }
@@ -77,7 +90,7 @@ final class AclHandler extends Provider implements EventReceiver
      *
      * @return string
      */
-    public function getEventsString()
+    public function getEventsString(): string
     {
         return $this->events;
     }
@@ -87,14 +100,15 @@ final class AclHandler extends Provider implements EventReceiver
      *
      * @link  https://php.net/manual/en/splobserver.update.php
      *
-     * @param SplSubject $subject <p>
+     * @param  SplSubject  $subject  <p>
      *                            The <b>SplSubject</b> notifying the observer of an update.
      *                            </p>
      *
      * @return void
      * @since 5.1.0
+     * @throws \SP\Core\Exceptions\SPException
      */
-    public function update(SplSubject $subject)
+    public function update(SplSubject $subject): void
     {
         $this->updateEvent('update', new Event($subject));
     }
@@ -102,10 +116,12 @@ final class AclHandler extends Provider implements EventReceiver
     /**
      * Evento de actualización
      *
-     * @param string $eventType Nombre del evento
-     * @param Event  $event     Objeto del evento
+     * @param  string  $eventType  Nombre del evento
+     * @param  Event  $event  Objeto del evento
+     *
+     * @throws \SP\Core\Exceptions\SPException
      */
-    public function updateEvent($eventType, Event $event)
+    public function updateEvent(string $eventType, Event $event): void
     {
         switch ($eventType) {
             case 'edit.userProfile':
@@ -122,20 +138,20 @@ final class AclHandler extends Provider implements EventReceiver
         }
     }
 
-    /**
-     * @param Event $event
-     */
-    private function processUserProfile(Event $event)
+    private function processUserProfile(Event $event): void
     {
         try {
             $eventMessage = $event->getEventMessage();
+
+            if (null === $eventMessage) {
+                throw new SPException(__u('Unable to process event for user profile'));
+            }
+
             $extra = $eventMessage->getExtra();
 
             if (isset($extra['userProfileId'])) {
-                $userProfileService = $this->dic->get(UserProfileService::class);
-
-                foreach ($userProfileService->getUsersForProfile($extra['userProfileId'][0]) as $user) {
-                    AccountAclService::clearAcl($user->id);
+                foreach ($this->userProfileService->getUsersForProfile($extra['userProfileId'][0]) as $user) {
+                    $this->clearAcl($user->id);
                 }
             }
         } catch (Exception $e) {
@@ -144,34 +160,63 @@ final class AclHandler extends Provider implements EventReceiver
     }
 
     /**
-     * @param Event $event
+     * @param $userId
+     *
+     * @return bool
      */
-    private function processUser(Event $event)
+    private function clearAcl($userId): bool
+    {
+        logger(sprintf('Clearing ACL for user ID: %d', $userId));
+
+        try {
+            if (FileUtil::rmdirRecursive(AccountAclService::ACL_PATH.$userId) === false) {
+                logger(sprintf('Unable to delete %s directory', AccountAclService::ACL_PATH.$userId));
+
+                return false;
+            }
+
+            return true;
+        } catch (FileNotFoundException $e) {
+            processException($e);
+        }
+
+        return false;
+    }
+
+    /**
+     * @throws \SP\Core\Exceptions\SPException
+     */
+    private function processUser(Event $event): void
     {
         $eventMessage = $event->getEventMessage();
+
+        if (null === $eventMessage) {
+            throw new SPException(__u('Unable to process event for user'));
+        }
+
         $extra = $eventMessage->getExtra();
 
         if (isset($extra['userId'])) {
             foreach ($extra['userId'] as $id) {
-                AccountAclService::clearAcl($id);
+                $this->clearAcl($id);
             }
         }
     }
 
-    /**
-     * @param Event $event
-     */
-    private function processUserGroup(Event $event)
+    private function processUserGroup(Event $event): void
     {
         try {
             $eventMessage = $event->getEventMessage();
+
+            if (null === $eventMessage) {
+                throw new SPException(__u('Unable to process event for user group'));
+            }
+
             $extra = $eventMessage->getExtra();
 
             if (isset($extra['userGroupId'])) {
-                $userGroupService = $this->dic->get(UserGroupService::class);
-
-                foreach ($userGroupService->getUsageByUsers($extra['userGroupId'][0]) as $user) {
-                    AccountAclService::clearAcl($user->id);
+                foreach ($this->userGroupService->getUsageByUsers($extra['userGroupId'][0]) as $user) {
+                    $this->clearAcl($user->id);
                 }
             }
         } catch (Exception $e) {
@@ -179,12 +224,9 @@ final class AclHandler extends Provider implements EventReceiver
         }
     }
 
-    /**
-     * @param Container $dic
-     */
-    protected function initialize(Container $dic)
+    public function initialize(): void
     {
-        $this->dic = $dic;
         $this->events = $this->parseEventsToRegex(self::EVENTS);
+        $this->initialized = true;
     }
 }

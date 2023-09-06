@@ -32,11 +32,10 @@ use SP\Core\Context\ContextException;
 use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\NoSuchPropertyException;
 use SP\Core\Exceptions\QueryException;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\Plugin\Services\PluginDataService;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Plugin\PluginOperation;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\Plugin\PluginDataService;
-use SP\Services\ServiceException;
-use SP\Storage\Database\DatabaseConnectionData;
 use SP\Tests\DatabaseTestCase;
 use stdClass;
 use function SP\Tests\setupContext;
@@ -59,14 +58,11 @@ class PluginOperationTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_plugin.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
         self::$pluginOperation = function ($name) use ($dic) {
@@ -79,7 +75,7 @@ class PluginOperationTest extends DatabaseTestCase
      * @throws ConstraintException
      * @throws NoSuchPropertyException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testUpdate()
     {
@@ -105,7 +101,7 @@ class PluginOperationTest extends DatabaseTestCase
      * @throws ConstraintException
      * @throws NoSuchPropertyException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testUpdateUnknown()
     {
@@ -143,13 +139,13 @@ class PluginOperationTest extends DatabaseTestCase
      */
     public function testDelete()
     {
-        $this->assertTableRowCount('PluginData', 4);
+        $this->assertEquals(4, self::getRowCount('PluginData'));
 
         /** @var PluginOperation $pluginOperation */
         $pluginOperation = self::$pluginOperation->call($this, 'Authenticator');
         $pluginOperation->delete(1);
 
-        $this->assertTableRowCount('PluginData', 3);
+        $this->assertEquals(3, self::getRowCount('PluginData'));
     }
 
     /**
@@ -178,7 +174,7 @@ class PluginOperationTest extends DatabaseTestCase
      * @throws ConstraintException
      * @throws NoSuchPropertyException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testGetUnknown()
     {

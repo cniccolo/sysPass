@@ -1,16 +1,38 @@
 <?php
-/**
- * @var ThemeIcons     $icons
- * @var callable       $_getvar
- * @var AccountExtData $accountData
- * @var AccountAcl     $accountAcl
- * @var ConfigData     $configData
+/*
+ * sysPass
+ *
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
+ *
+ * This file is part of sysPass.
+ *
+ * sysPass is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * sysPass is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use SP\Config\ConfigData;
+/**
+ * @var ThemeIcons                     $icons
+ * @var callable                       $_getvar
+ * @var AccountExtData                 $accountData
+ * @var AccountAcl                     $accountAcl
+ * @var \SP\Domain\Config\Ports\ConfigDataInterface $configData
+ */
+
 use SP\Core\UI\ThemeIcons;
 use SP\DataModel\AccountExtData;
-use SP\Services\Account\AccountAcl;
+use SP\Domain\Account\Services\AccountAcl;
 
 ?>
 
@@ -20,8 +42,7 @@ use SP\Services\Account\AccountAcl;
              data-action-route="<?php echo $_getvar('fileListRoute'); ?>"
              data-item-id="<?php echo $_getvar('accountId'); ?>"
              data-history="<?php echo $_getvar('accountIsHistory', false); ?>"
-             data-delete="<?php echo (int)$accountAcl->isShowDelete(); ?>"
-             data-sk="<?php echo $_getvar('sk'); ?>">
+             data-delete="<?php echo (int)$accountAcl->isShowDelete(); ?>">
         </div>
 
         <?php if ($_getvar('editAction')): ?>
@@ -30,7 +51,6 @@ use SP\Services\Account\AccountAcl;
                      class="round active-tooltip dropzone"
                      data-files-ext="<?php echo $_getvar('filesAllowedExts'); ?>"
                      data-item-id="<?php echo $_getvar('accountId'); ?>"
-                     data-sk="<?php echo $_getvar('sk'); ?>"
                      data-action-route="<?php echo $_getvar('fileUploadRoute'); ?>"
                      data-delete="<?php echo (int)$accountAcl->isShowDelete(); ?>">
                     <i class="material-icons md-60 mdl-color-text--teal-500">cloud_upload</i>

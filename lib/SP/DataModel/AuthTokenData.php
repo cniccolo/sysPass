@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2023, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,186 +19,72 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\DataModel;
 
-use SP\Core\Crypt\Vault;
+use SP\Domain\Common\Adapters\DataModelInterface;
+use SP\Domain\Common\Models\Model;
 
 /**
  * Class AuthTokenData
  *
  * @package SP\DataModel
  */
-class AuthTokenData extends DataModelBase implements DataModelInterface
+class AuthTokenData extends Model implements DataModelInterface
 {
-    /**
-     * @var int
-     */
-    public $id;
-    /**
-     * @var string
-     */
-    public $vault;
-    /**
-     * @var int
-     */
-    public $userId;
-    /**
-     * @var string
-     */
-    public $token = '';
-    /**
-     * @var int
-     */
-    public $createdBy;
-    /**
-     * @var int
-     */
-    public $startDate;
-    /**
-     * @var int
-     */
-    public $actionId;
-    /**
-     * @var string
-     */
-    public $hash;
+    public ?int       $userId    = null;
+    public ?string    $token     = null;
+    public ?int       $createdBy = null;
+    public ?int       $startDate = null;
+    public ?int       $actionId  = null;
+    public ?string    $hash      = null;
+    protected ?int    $id        = null;
+    protected ?string $vault     = null;
 
-    /**
-     * @return int
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return (int)$this->id;
     }
 
-    /**
-     * @param int $id
-     */
-    public function setId($id)
-    {
-        $this->id = (int)$id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getVault()
+    public function getVault(): ?string
     {
         return $this->vault;
     }
 
-    /**
-     * @param Vault $vault
-     */
-    public function setVault(Vault $vault)
+    public function getUserId(): ?int
     {
-        $this->vault = serialize($vault);
+        return $this->userId;
     }
 
-    /**
-     * @return int
-     */
-    public function getUserId()
-    {
-        return (int)$this->userId;
-    }
-
-    /**
-     * @param int $userId
-     */
-    public function setUserId($userId)
-    {
-        $this->userId = (int)$userId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getToken()
+    public function getToken(): ?string
     {
         return $this->token;
     }
 
-    /**
-     * @param string $token
-     */
-    public function setToken($token)
+    public function getCreatedBy(): ?int
     {
-        $this->token = $token;
+        return $this->createdBy;
     }
 
-    /**
-     * @return int
-     */
-    public function getCreatedBy()
+    public function getStartDate(): ?int
     {
-        return (int)$this->createdBy;
+        return $this->startDate;
     }
 
-    /**
-     * @param int $createdBy
-     */
-    public function setCreatedBy($createdBy)
+    public function getName(): ?string
     {
-        $this->createdBy = (int)$createdBy;
+        return null;
     }
 
-    /**
-     * @return int
-     */
-    public function getStartDate()
+    public function getActionId(): ?int
     {
-        return (int)$this->startDate;
+        return $this->actionId;
     }
 
-    /**
-     * @param int $startDate
-     */
-    public function setStartDate($startDate)
-    {
-        $this->startDate = (int)$startDate;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName()
-    {
-        return '';
-    }
-
-    /**
-     * @return int
-     */
-    public function getActionId()
-    {
-        return (int)$this->actionId;
-    }
-
-    /**
-     * @param int $actionId
-     */
-    public function setActionId($actionId)
-    {
-        $this->actionId = (int)$actionId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getHash()
+    public function getHash(): ?string
     {
         return $this->hash;
-    }
-
-    /**
-     * @param string $hash
-     */
-    public function setHash($hash)
-    {
-        $this->hash = $hash;
     }
 }

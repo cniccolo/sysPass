@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Repositories;
@@ -32,8 +32,8 @@ use SP\Core\Exceptions\QueryException;
 use SP\Core\Messages\NotificationMessage;
 use SP\DataModel\ItemSearchData;
 use SP\DataModel\NotificationData;
-use SP\Repositories\Notification\NotificationRepository;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Notification\Ports\NotificationRepositoryInterface;
+use SP\Infrastructure\Notification\Repositories\NotificationRepository;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -45,7 +45,7 @@ use function SP\Tests\setupContext;
 class NotificationRepositoryTest extends DatabaseTestCase
 {
     /**
-     * @var NotificationRepository
+     * @var NotificationRepositoryInterface
      */
     private static $repository;
 
@@ -54,14 +54,11 @@ class NotificationRepositoryTest extends DatabaseTestCase
      * @throws NotFoundException
      * @throws ContextException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(NotificationRepository::class);
@@ -73,10 +70,10 @@ class NotificationRepositoryTest extends DatabaseTestCase
      */
     public function testDeleteAdmin()
     {
-        $countBefore = $this->conn->getRowCount('Notification');
+        $countBefore = self::getRowCount('Notification');
 
         $this->assertEquals(1, self::$repository->deleteAdmin(3));
-        $this->assertEquals($countBefore - 1, $this->conn->getRowCount('Notification'));
+        $this->assertEquals($countBefore - 1, self::getRowCount('Notification'));
     }
 
     /**
@@ -86,7 +83,7 @@ class NotificationRepositoryTest extends DatabaseTestCase
     public function testDeleteAdminBatch()
     {
         $this->assertEquals(3, self::$repository->deleteAdminBatch([1, 2, 3, 5]));
-        $this->assertEquals(0, $this->conn->getRowCount('Notification'));
+        $this->assertEquals(0, self::getRowCount('Notification'));
     }
 
     /**
@@ -192,13 +189,6 @@ class NotificationRepositoryTest extends DatabaseTestCase
         $this->assertEquals(2, $data[0]->getId());
         $this->assertEquals('Global', $data[0]->getType());
 
-        $itemSearchData->setSeachString('');
-
-        $result = self::$repository->search($itemSearchData);
-
-        $this->assertEquals(3, $result->getNumRows());
-        $this->assertCount(3, $result->getDataAsArray());
-
         $itemSearchData->setSeachString('Accounts');
 
         $result = self::$repository->search($itemSearchData);
@@ -213,6 +203,13 @@ class NotificationRepositoryTest extends DatabaseTestCase
         $this->assertEquals('Accounts', $data[1]->getComponent());
         $this->assertEquals(1529145158, $data[2]->getDate());
         $this->assertEquals('Accounts', $data[2]->getComponent());
+
+        $itemSearchData->setSeachString(null);
+
+        $result = self::$repository->search($itemSearchData);
+
+        $this->assertEquals(3, $result->getNumRows());
+        $this->assertCount(3, $result->getDataAsArray());
     }
 
     /**
@@ -404,7 +401,7 @@ class NotificationRepositoryTest extends DatabaseTestCase
         $this->assertEquals(2, self::$repository->deleteByIdBatch([1, 2, 3, 4]));
         $this->assertEquals(0, self::$repository->deleteByIdBatch([]));
 
-        $this->assertEquals(1, $this->conn->getRowCount('Notification'));
+        $this->assertEquals(1, self::getRowCount('Notification'));
     }
 
     /**

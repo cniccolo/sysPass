@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,21 +19,20 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Providers\Notification;
 
-use DI\Container;
-use DI\DependencyException;
-use DI\NotFoundException;
 use Exception;
+use SP\Core\Application;
 use SP\Core\Events\Event;
 use SP\Core\Events\EventReceiver;
 use SP\DataModel\NotificationData;
+use SP\Domain\Notification\Ports\NotificationServiceInterface;
+use SP\Domain\Notification\Services\NotificationService;
 use SP\Providers\EventsTrait;
 use SP\Providers\Provider;
-use SP\Services\Notification\NotificationService;
 use SplSubject;
 
 /**
@@ -45,26 +44,29 @@ final class NotificationHandler extends Provider implements EventReceiver
 {
     use EventsTrait;
 
-    const EVENTS = [
+    public const EVENTS = [
         'request.account',
-        'show.account.link'
+        'show.account.link',
     ];
 
-    /**
-     * @var NotificationService
-     */
-    private $notificationService;
-    /**
-     * @var string
-     */
-    private $events;
+    private NotificationService $notificationService;
+    private string              $events;
+
+    public function __construct(
+        Application $application,
+        NotificationServiceInterface $notificationService
+    ) {
+        $this->notificationService = $notificationService;
+
+        parent::__construct($application);
+    }
 
     /**
      * Devuelve los eventos que implementa el observador
      *
      * @return array
      */
-    public function getEvents()
+    public function getEvents(): array
     {
         return self::EVENTS;
     }
@@ -74,7 +76,7 @@ final class NotificationHandler extends Provider implements EventReceiver
      *
      * @return string
      */
-    public function getEventsString()
+    public function getEventsString(): string
     {
         return $this->events;
     }
@@ -84,14 +86,14 @@ final class NotificationHandler extends Provider implements EventReceiver
      *
      * @link  http://php.net/manual/en/splobserver.update.php
      *
-     * @param SplSubject $subject <p>
+     * @param  SplSubject  $subject  <p>
      *                            The <b>SplSubject</b> notifying the observer of an update.
      *                            </p>
      *
      * @return void
      * @since 5.1.0
      */
-    public function update(SplSubject $subject)
+    public function update(SplSubject $subject): void
     {
         $this->updateEvent('update', new Event($subject));
     }
@@ -99,10 +101,10 @@ final class NotificationHandler extends Provider implements EventReceiver
     /**
      * Evento de actualización
      *
-     * @param string $eventType Nombre del evento
-     * @param Event  $event     Objeto del evento
+     * @param  string  $eventType  Nombre del evento
+     * @param  Event  $event  Objeto del evento
      */
-    public function updateEvent($eventType, Event $event)
+    public function updateEvent(string $eventType, Event $event): void
     {
         switch ($eventType) {
             case 'request.account':
@@ -115,12 +117,12 @@ final class NotificationHandler extends Provider implements EventReceiver
     }
 
     /**
-     * @param Event $event
+     * @param  Event  $event
      */
-    private function requestAccountNotification(Event $event)
+    private function requestAccountNotification(Event $event): void
     {
         $eventMessage = $event->getEventMessage();
-        $data = $eventMessage->getExtra();
+        $data = $eventMessage !== null ? $eventMessage->getExtra() : [];
 
         foreach ($data['userId'] as $userId) {
             $notificationData = new NotificationData();
@@ -134,9 +136,9 @@ final class NotificationHandler extends Provider implements EventReceiver
     }
 
     /**
-     * @param NotificationData $notificationData
+     * @param  NotificationData  $notificationData
      */
-    private function notify(NotificationData $notificationData)
+    private function notify(NotificationData $notificationData): void
     {
         try {
             $this->notificationService->create($notificationData);
@@ -146,12 +148,12 @@ final class NotificationHandler extends Provider implements EventReceiver
     }
 
     /**
-     * @param Event $event
+     * @param  Event  $event
      */
-    private function showAccountLinkNotification(Event $event)
+    private function showAccountLinkNotification(Event $event): void
     {
         $eventMessage = $event->getEventMessage();
-        $data = $eventMessage->getExtra();
+        $data = $eventMessage !== null ? $eventMessage->getExtra() : [];
 
         if ($data['notify'][0] === true) {
             $notificationData = new NotificationData();
@@ -164,16 +166,9 @@ final class NotificationHandler extends Provider implements EventReceiver
         }
     }
 
-    /**
-     * @param Container $dic
-     *
-     * @throws DependencyException
-     * @throws NotFoundException
-     */
-    protected function initialize(Container $dic)
+    public function initialize(): void
     {
-        $this->notificationService = $dic->get(NotificationService::class);
-
         $this->events = $this->parseEventsToRegex(self::EVENTS);
+        $this->initialized = true;
     }
 }

@@ -1,19 +1,40 @@
 <?php
-/**
- * @var DataGridAction|DataGridActionSearch $action
- * @var SP\Html\DataGrid\DataGridTab        $data
- * @var ThemeIcons                          $icons
- * @var ConfigData                          $configData
- * @var callable                            $_getvar
- * @var Template                            $this
+/*
+ * sysPass
+ *
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
+ *
+ * This file is part of sysPass.
+ *
+ * sysPass is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * sysPass is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use SP\Config\ConfigData;
+/**
+ * @var DataGridAction|DataGridActionSearch $action
+ * @var SP\Html\DataGrid\DataGridTab $data
+ * @var ThemeIcons $icons
+ * @var \SP\Domain\Config\Ports\ConfigDataInterface $configData
+ * @var callable $_getvar
+ * @var \SP\Mvc\View\TemplateInterface $this
+ */
+
 use SP\Core\UI\ThemeIcons;
 use SP\Html\DataGrid\Action\DataGridAction;
 use SP\Html\DataGrid\Action\DataGridActionSearch;
 use SP\Html\DataGrid\Action\DataGridActionType;
-use SP\Mvc\View\Template;
 
 if (!isset($data)) {
     $data = $_getvar('data');
@@ -77,8 +98,6 @@ $index = $index ?? 0;
                         <span for="btn-reset-<?php echo $index; ?>"
                               class="mdl-tooltip mdl-tooltip--bottom"><?php echo $icons->getIconClear()->getTitle(); ?></span>
 
-                        <input type="hidden" name="sk"
-                               value="<?php echo $sk; ?>">
                         <input type="hidden" name="activetab"
                                value="<?php echo $index; ?>">
                         <input type="hidden" name="start" value="0">

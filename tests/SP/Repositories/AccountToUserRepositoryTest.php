@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Repositories;
@@ -30,9 +30,9 @@ use SP\Core\Context\ContextException;
 use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
 use SP\DataModel\ItemData;
-use SP\Repositories\Account\AccountToUserRepository;
-use SP\Services\Account\AccountRequest;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Account\Dtos\AccountRequest;
+use SP\Domain\Account\Ports\AccountToUserRepositoryInterface;
+use SP\Infrastructure\Account\Repositories\AccountToUserRepository;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -46,7 +46,7 @@ use function SP\Tests\setupContext;
 class AccountToUserRepositoryTest extends DatabaseTestCase
 {
     /**
-     * @var AccountToUserRepository
+     * @var AccountToUserRepositoryInterface
      */
     private static $repository;
 
@@ -55,14 +55,11 @@ class AccountToUserRepositoryTest extends DatabaseTestCase
      * @throws NotFoundException
      * @throws ContextException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(AccountToUserRepository::class);
@@ -210,7 +207,7 @@ class AccountToUserRepositoryTest extends DatabaseTestCase
 
         $this->assertEquals(0, self::$repository->deleteTypeByAccountId(10, false));
 
-        $this->assertEquals(1, $this->conn->getRowCount('AccountToUser'));
+        $this->assertEquals(1, self::getRowCount('AccountToUser'));
     }
 
     /**
@@ -226,7 +223,7 @@ class AccountToUserRepositoryTest extends DatabaseTestCase
 
         $this->assertEquals(0, self::$repository->deleteByAccountId(10));
 
-        $this->assertEquals(1, $this->conn->getRowCount('AccountToUser'));
+        $this->assertEquals(1, self::getRowCount('AccountToUser'));
     }
 
     /**
@@ -318,6 +315,6 @@ class AccountToUserRepositoryTest extends DatabaseTestCase
 
         $this->assertEquals(0, self::$repository->deleteTypeByAccountId(10, true));
 
-        $this->assertEquals(1, $this->conn->getRowCount('AccountToUser'));
+        $this->assertEquals(1, self::getRowCount('AccountToUser'));
     }
 }

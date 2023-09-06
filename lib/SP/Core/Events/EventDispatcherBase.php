@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Core\Events;
@@ -38,7 +38,7 @@ abstract class EventDispatcherBase implements EventDispatcherInterface
     /**
      * @var EventReceiver[]
      */
-    protected $observers = [];
+    protected array $observers = [];
 
     /**
      * Attach an SplObserver
@@ -51,7 +51,7 @@ abstract class EventDispatcherBase implements EventDispatcherInterface
      *
      * @since 5.1.0
      */
-    public function attach(SplObserver $observer)
+    public function attach(SplObserver $observer): void
     {
         $observerClass = get_class($observer);
 
@@ -77,7 +77,7 @@ abstract class EventDispatcherBase implements EventDispatcherInterface
      * @throws InvalidClassException
      * @since 5.1.0
      */
-    public function detach(SplObserver $observer)
+    public function detach(SplObserver $observer): void
     {
         $observerClass = get_class($observer);
 
@@ -95,7 +95,7 @@ abstract class EventDispatcherBase implements EventDispatcherInterface
      * @return void
      * @since 5.1.0
      */
-    public function notify()
+    public function notify(): void
     {
         foreach ($this->observers as $observer) {
             $observer->update($this);
@@ -104,24 +104,22 @@ abstract class EventDispatcherBase implements EventDispatcherInterface
 
     /**
      * Notificar un evento
-     *
-     * @param string $eventType
-     * @param Event  $event
      */
-    public function notifyEvent($eventType, Event $event)
+    public function notifyEvent(string $eventName, Event $event): void
     {
         foreach ($this->observers as $observer) {
             if (method_exists($observer, 'getEventsString')) {
                 $events = $observer->getEventsString();
 
                 if (!empty($events)
-                    && ($events === '*' || preg_match('/' . $events . '/i', $eventType))
+                    && ($events === '*'
+                        || preg_match('/' . $events . '/i', $eventName))
                 ) {
                     // FIXME: update receivers Event
-                    $observer->updateEvent($eventType, $event);
+                    $observer->updateEvent($eventName, $event);
                 }
             } else {
-                $observer->updateEvent($eventType, $event);
+                $observer->updateEvent($eventName, $event);
             }
         }
     }

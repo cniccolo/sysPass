@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,10 +19,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\DataModel;
+
+use SP\Domain\Common\Adapters\DataModelInterface;
+use SP\Domain\Common\Models\Model;
 
 defined('APP_ROOT') || die();
 
@@ -31,66 +34,33 @@ defined('APP_ROOT') || die();
  *
  * @package SP\DataModel
  */
-class UserProfileData extends DataModelBase implements DataModelInterface
+class UserProfileData extends Model implements DataModelInterface
 {
-    /**
-     * @var int
-     */
-    public $id = 0;
-    /**
-     * @var string
-     */
-    public $name = '';
-    /**
-     * @var ProfileData
-     */
-    public $profile;
+    protected ?int         $id      = null;
+    protected ?string      $name    = null;
+    protected ?ProfileData $profile = null;
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
     /**
-     * @param string $name
+     * @return int|null
      */
-    public function setName($name)
-    {
-        $this->name = $name;
-    }
-
-    /**
-     * @return int
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return (int)$this->id;
     }
 
     /**
-     * @param int $id
+     * @return \SP\DataModel\ProfileData|null
      */
-    public function setId($id)
-    {
-        $this->id = (int)$id;
-    }
-
-    /**
-     * @return ProfileData
-     */
-    public function getProfile()
+    public function getProfile(): ?ProfileData
     {
         return $this->profile;
-    }
-
-    /**
-     * @param ProfileData $profile
-     */
-    public function setProfile(ProfileData $profile)
-    {
-        $this->profile = $profile;
     }
 }

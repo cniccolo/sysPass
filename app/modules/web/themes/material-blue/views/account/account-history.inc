@@ -23,18 +23,17 @@
  */
 
 /**
- * @var callable       $_getvar
- * @var ThemeIcons     $icons
- * @var AccountExtData $accountData
- * @var AccountAcl     $accountAcl
- * @var ConfigData     $configData
+ * @var callable                       $_getvar
+ * @var ThemeIcons                     $icons
+ * @var AccountExtData                 $accountData
+ * @var AccountAcl                     $accountAcl
+ * @var \SP\Domain\Config\Ports\ConfigDataInterface $configData
  */
 
-use SP\Config\ConfigData;
 use SP\Core\UI\ThemeIcons;
 use SP\DataModel\AccountExtData;
+use SP\Domain\Account\Services\AccountAcl;
 use SP\Mvc\View\Components\SelectItem;
-use SP\Services\Account\AccountAcl;
 
 /** @var AccountExtData $accountData */
 $accountData = $_getvar('accountData');
@@ -68,7 +67,6 @@ $accountAcl = $_getvar('accountAcl');
                   data-action-route="<?php echo $_getvar('formRoute', ''); ?>"
                   data-item-id="<?php echo $_getvar('accountId', ''); ?>"
                   data-hash="">
-                <input type="hidden" name="sk" value="<?php echo $sk; ?>">
                 <input type="hidden" name="isAjax" value="1">
 
                 <table class="data">

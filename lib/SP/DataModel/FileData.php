@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,186 +19,84 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\DataModel;
 
-defined('APP_ROOT') || die();
+use SP\Domain\Common\Adapters\DataModelInterface;
+use SP\Domain\Common\Models\Model;
 
 /**
  * Class FileData
  *
  * @package SP\DataModel
  */
-class FileData extends DataModelBase implements DataModelInterface
+class FileData extends Model implements DataModelInterface
 {
-    /**
-     * @var int
-     */
-    public $id;
-    /**
-     * @var int
-     */
-    public $accountId;
-    /**
-     * @var string
-     */
-    public $name;
-    /**
-     * @var int
-     */
-    public $type;
-    /**
-     * @var string
-     */
-    public $content;
-    /**
-     * @var string
-     */
-    public $extension;
-    /**
-     * @var string
-     */
-    public $thumb;
-    /**
-     * @var int
-     */
-    public $size;
+    protected ?int    $id        = null;
+    protected ?int    $accountId = null;
+    protected ?string $name      = null;
+    protected ?string $type      = null;
+    protected ?string $content   = null;
+    protected ?string $extension = null;
+    protected ?string $thumb     = null;
+    protected ?int    $size      = null;
 
-    /**
-     * @return int
-     */
-    public function getId()
+    public function getId(): ?int
     {
-        return (int)$this->id;
+        return $this->id;
     }
 
-    /**
-     * @param int $id
-     */
-    public function setId($id)
-    {
-        $this->id = (int)$id;
-    }
-
-    /**
-     * @return int
-     */
-    public function getAccountId()
+    public function getAccountId(): ?int
     {
         return $this->accountId;
     }
 
-    /**
-     * @param int $accountId
-     */
-    public function setAccountId($accountId)
-    {
-        $this->accountId = $accountId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-    /**
-     * @param string $name
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-    }
-
-    /**
-     * @return int
-     */
-    public function getType()
+    public function getType(): ?string
     {
         return $this->type;
     }
 
-    /**
-     * @param int $type
-     */
-    public function setType($type)
-    {
-        $this->type = $type;
-    }
-
-    /**
-     * @return string
-     */
-    public function getContent()
+    public function getContent(): ?string
     {
         return $this->content;
     }
 
-    /**
-     * @param string $content
-     */
-    public function setContent($content)
-    {
-        $this->content = $content;
-    }
-
-    /**
-     * @return string
-     */
-    public function getExtension()
+    public function getExtension(): ?string
     {
         return $this->extension;
     }
 
-    /**
-     * @param string $extension
-     */
-    public function setExtension($extension)
-    {
-        $this->extension = $extension;
-    }
-
-    /**
-     * @return string
-     */
-    public function getThumb()
+    public function getThumb(): ?string
     {
         return $this->thumb;
     }
 
     /**
-     * @param string $thumb
+     * @param  string  $thumb
      */
-    public function setThumb($thumb)
+    public function setThumb(string $thumb): void
     {
         $this->thumb = $thumb;
     }
 
-    /**
-     * @return int
-     */
-    public function getSize()
+    public function getSize(): ?int
     {
         return $this->size;
     }
 
-    /**
-     * @param int $size
-     */
-    public function setSize($size)
+    public function getRoundSize(): float
     {
-        $this->size = $size;
-    }
+        if (null === $this->size) {
+            return 0.0;
+        }
 
-    /**
-     * @return float
-     */
-    public function getRoundSize()
-    {
         return round($this->size / 1000, 2);
     }
 }

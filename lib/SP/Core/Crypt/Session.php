@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Core\Crypt;
@@ -32,27 +32,19 @@ use SP\Core\Context\SessionContext;
  *
  * @package SP\Core\Crypt
  */
-final class Session
+class Session
 {
     /**
      * Devolver la clave maestra de la sesión
      *
-     * @param SessionContext $sessionContext
-     *
-     * @return string
      * @throws CryptoException
      */
-    public static function getSessionKey(SessionContext $sessionContext)
+    public static function getSessionKey(SessionContext $sessionContext): string
     {
         return $sessionContext->getVault()->getData(self::getKey($sessionContext));
     }
 
-    /**
-     * @param SessionContext $sessionContext
-     *
-     * @return string
-     */
-    private static function getKey(SessionContext $sessionContext)
+    private static function getKey(SessionContext $sessionContext): string
     {
         return session_id() . $sessionContext->getSidStartTime();
     }
@@ -60,12 +52,9 @@ final class Session
     /**
      * Guardar la clave maestra en la sesión
      *
-     * @param                $data
-     * @param SessionContext $sessionContext
-     *
      * @throws CryptoException
      */
-    public static function saveSessionKey($data, SessionContext $sessionContext)
+    public static function saveSessionKey($data, SessionContext $sessionContext): void
     {
         $sessionContext->setVault((new Vault())->saveData($data, self::getKey($sessionContext)));
     }
@@ -73,11 +62,9 @@ final class Session
     /**
      * Regenerar la clave de sesión
      *
-     * @param SessionContext $sessionContext
-     *
      * @throws CryptoException
      */
-    public static function reKey(SessionContext $sessionContext)
+    public static function reKey(SessionContext $sessionContext): void
     {
         logger(__METHOD__);
 

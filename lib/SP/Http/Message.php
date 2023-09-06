@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Http;
@@ -31,67 +31,36 @@ namespace SP\Http;
  */
 final class Message
 {
-    const TYPE_OK = 0;
-    const TYPE_ERROR = 1;
-    const TYPE_WARNING = 2;
+    protected int $type = 0;
+    protected ?string $description = null;
+    protected ?string $hint = null;
 
-    /**
-     * @var int
-     */
-    protected $type = 0;
-    /**
-     * @var string
-     */
-    protected $description;
-    /**
-     * @var string
-     */
-    protected $hint;
-
-    /**
-     * @return int
-     */
-    public function getType()
+    public function getType(): int
     {
         return $this->type;
     }
 
-    /**
-     * @param int $type
-     */
-    public function setType($type)
+    public function setType(int $type): void
     {
         $this->type = $type;
     }
 
-    /**
-     * @return string
-     */
-    public function getDescription()
+    public function getDescription(): ?string
     {
         return $this->description;
     }
 
-    /**
-     * @param string $description
-     */
-    public function setDescription($description)
+    public function setDescription(string $description): void
     {
         $this->description = $description;
     }
 
-    /**
-     * @return string
-     */
-    public function getHint()
+    public function getHint(): ?string
     {
         return $this->hint;
     }
 
-    /**
-     * @param string $hint
-     */
-    public function setHint($hint)
+    public function setHint(string $hint): void
     {
         $this->hint = $hint;
     }

@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Repositories;
@@ -31,8 +31,8 @@ use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
 use SP\DataModel\CustomFieldTypeData;
-use SP\Repositories\CustomField\CustomFieldTypeRepository;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\CustomField\Ports\CustomFieldTypeRepositoryInterface;
+use SP\Infrastructure\CustomField\Repositories\CustomFieldTypeRepository;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -44,7 +44,7 @@ use function SP\Tests\setupContext;
 class CustomFieldTypeRepositoryTest extends DatabaseTestCase
 {
     /**
-     * @var CustomFieldTypeRepository
+     * @var CustomFieldTypeRepositoryInterface
      */
     private static $repository;
 
@@ -53,14 +53,11 @@ class CustomFieldTypeRepositoryTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(CustomFieldTypeRepository::class);
@@ -72,11 +69,11 @@ class CustomFieldTypeRepositoryTest extends DatabaseTestCase
      */
     public function testDeleteByIdBatch()
     {
-        $countBefore = $this->conn->getRowCount('CustomFieldType');
+        $countBefore = self::getRowCount('CustomFieldType');
 
         $this->assertEquals(2, self::$repository->deleteByIdBatch([3, 4, 100]));
         $this->assertEquals(0, self::$repository->deleteByIdBatch([]));
-        $this->assertEquals($countBefore - 2, $this->conn->getRowCount('CustomFieldType'));
+        $this->assertEquals($countBefore - 2, self::getRowCount('CustomFieldType'));
 
         $this->expectException(ConstraintException::class);
 
@@ -89,11 +86,11 @@ class CustomFieldTypeRepositoryTest extends DatabaseTestCase
      */
     public function testDelete()
     {
-        $countBefore = $this->conn->getRowCount('CustomFieldType');
+        $countBefore = self::getRowCount('CustomFieldType');
 
         $this->assertEquals(1, self::$repository->delete(3));
         $this->assertEquals(0, self::$repository->delete(100));
-        $this->assertEquals($countBefore - 1, $this->conn->getRowCount('CustomFieldType'));
+        $this->assertEquals($countBefore - 1, self::getRowCount('CustomFieldType'));
 
         $this->expectException(ConstraintException::class);
 

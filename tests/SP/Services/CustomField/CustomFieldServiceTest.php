@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\CustomField;
@@ -34,10 +34,9 @@ use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
 use SP\DataModel\CustomFieldData;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\CustomField\CustomFieldService;
-use SP\Services\ServiceException;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\CustomField\Services\CustomFieldService;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use SP\Tests\Services\Account\AccountCryptServiceTest;
 use function SP\Tests\setupContext;
@@ -50,7 +49,7 @@ use function SP\Tests\setupContext;
 class CustomFieldServiceTest extends DatabaseTestCase
 {
     /**
-     * @var CustomFieldService
+     * @var \SP\Domain\CustomField\Ports\CustomFieldServiceInterface
      */
     private static $service;
 
@@ -59,14 +58,11 @@ class CustomFieldServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_customField.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$service = $dic->get(CustomFieldService::class);
@@ -80,7 +76,7 @@ class CustomFieldServiceTest extends DatabaseTestCase
     {
         $this->assertEquals(3, self::$service->deleteCustomFieldDefinitionDataBatch([1, 2, 3]));
 
-        $this->assertEquals(0, $this->conn->getRowCount('CustomFieldData'));
+        $this->assertEquals(0, self::getRowCount('CustomFieldData'));
 
         $this->assertEquals(0, self::$service->deleteCustomFieldDefinitionDataBatch([]));
     }
@@ -89,7 +85,7 @@ class CustomFieldServiceTest extends DatabaseTestCase
      * @throws CryptoException
      * @throws ConstraintException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testUpdateMasterPass()
     {
@@ -132,7 +128,7 @@ class CustomFieldServiceTest extends DatabaseTestCase
 
         $this->assertEquals(1, self::$service->deleteCustomFieldDataBatch([1, 2, 3], ActionsInterface::CATEGORY));
 
-        $this->assertEquals(0, $this->conn->getRowCount('CustomFieldData'));
+        $this->assertEquals(0, self::getRowCount('CustomFieldData'));
 
         $this->assertEquals(0, self::$service->deleteCustomFieldDataBatch([], ActionsInterface::CATEGORY));
 
@@ -189,7 +185,7 @@ class CustomFieldServiceTest extends DatabaseTestCase
 
         $this->assertEquals(true, self::$service->updateOrCreateData($data));
 
-        $this->assertEquals(5, $this->conn->getRowCount('CustomFieldData'));
+        $this->assertEquals(5, self::getRowCount('CustomFieldData'));
     }
 
     /**
@@ -310,7 +306,7 @@ class CustomFieldServiceTest extends DatabaseTestCase
         $this->assertEquals(1, self::$service->deleteCustomFieldData(2, ActionsInterface::ACCOUNT));
         $this->assertEquals(1, self::$service->deleteCustomFieldData(1, ActionsInterface::CATEGORY));
 
-        $this->assertEquals(0, $this->conn->getRowCount('CustomFieldData'));
+        $this->assertEquals(0, self::getRowCount('CustomFieldData'));
 
         $this->assertEquals(0, self::$service->deleteCustomFieldData(2, ActionsInterface::ACCOUNT));
 
@@ -329,7 +325,7 @@ class CustomFieldServiceTest extends DatabaseTestCase
         $this->assertEquals(1, self::$service->deleteCustomFieldDefinitionData(2));
         $this->assertEquals(0, self::$service->deleteCustomFieldDefinitionData(3));
 
-        $this->assertEquals(0, $this->conn->getRowCount('CustomFieldData'));
+        $this->assertEquals(0, self::getRowCount('CustomFieldData'));
     }
 
     /**
@@ -400,6 +396,6 @@ class CustomFieldServiceTest extends DatabaseTestCase
 
         self::$service->create($data);
 
-        $this->assertEquals(4, $this->conn->getRowCount('CustomFieldData'));
+        $this->assertEquals(4, self::getRowCount('CustomFieldData'));
     }
 }

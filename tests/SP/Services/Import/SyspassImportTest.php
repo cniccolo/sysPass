@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Import;
@@ -32,17 +32,16 @@ use SP\Core\Context\ContextException;
 use SP\Core\Crypt\Crypt;
 use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\Account\AccountService;
-use SP\Services\Category\CategoryService;
-use SP\Services\Client\ClientService;
-use SP\Services\Import\FileImport;
-use SP\Services\Import\ImportException;
-use SP\Services\Import\ImportParams;
-use SP\Services\Import\SyspassImport;
-use SP\Services\Import\XmlFileImport;
-use SP\Storage\Database\DatabaseConnectionData;
-use SP\Storage\File\FileException;
+use SP\Domain\Account\Services\AccountService;
+use SP\Domain\Category\Services\CategoryService;
+use SP\Domain\Client\Services\ClientService;
+use SP\Domain\Import\Services\FileImport;
+use SP\Domain\Import\Services\ImportException;
+use SP\Domain\Import\Services\ImportParams;
+use SP\Domain\Import\Services\SyspassImport;
+use SP\Domain\Import\Services\XmlFileImport;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
+use SP\Infrastructure\File\FileException;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -59,18 +58,13 @@ class SyspassImportTest extends DatabaseTestCase
     protected static $dic;
 
     /**
-     * @throws NotFoundException
      * @throws ContextException
-     * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$dic = setupContext();
 
-        self::$dataset = 'syspass_import.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = self::$dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
     }
 
     /**
@@ -85,7 +79,7 @@ class SyspassImportTest extends DatabaseTestCase
      */
     public function testDoImport()
     {
-        $file = RESOURCE_DIR . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass.xml';
+        $file = RESOURCE_PATH . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass.xml';
 
         $params = new ImportParams();
         $params->setDefaultUser(1);
@@ -110,21 +104,22 @@ class SyspassImportTest extends DatabaseTestCase
         // Checkout categories
         $this->assertEquals('CSV Category 1', self::$dic->get(CategoryService::class)->getByName('CSV Category 1')->getName());
 
-        $this->assertEquals(5, $this->conn->getRowCount('Category'));
+        $this->assertEquals(5, self::getRowCount('Category'));
 
         // Checkout clients
         $this->assertEquals('CSV Client 1', self::$dic->get(ClientService::class)->getByName('CSV Client 1')->getName());
 
-        $this->assertEquals(5, $this->conn->getRowCount('Client'));
+        $this->assertEquals(6, self::getRowCount('Client'));
 
         // Checkout accounts
         $accountService = self::$dic->get(AccountService::class);
 
         // 1st account
-        $result = $accountService->getById(3);
+        $expectedId = 5;
+        $result = $accountService->getByIdEnriched($expectedId);
         $data = $result->getAccountVData();
 
-        $this->assertEquals(3, $data->getId());
+        $this->assertEquals($expectedId, $data->getId());
         $this->assertEquals(1, $data->getUserId());
         $this->assertEquals(2, $data->getUserGroupId());
         $this->assertEquals('Google', $data->getName());
@@ -134,7 +129,7 @@ class SyspassImportTest extends DatabaseTestCase
         $this->assertEmpty($data->getNotes());
         $this->assertEquals('admin', $data->getLogin());
 
-        $accountService->withTagsById($result);
+        $accountService->withTags($result);
 
         $expectedTags = [7, 8, 9];
         $i = 0;
@@ -148,11 +143,12 @@ class SyspassImportTest extends DatabaseTestCase
 
         $this->assertEquals('-{?^··\mjC<c', Crypt::decrypt($pass->getPass(), $pass->getKey(), '12345678900'));
 
-        // 1st account
-        $result = $accountService->getById(4);
+        // 2nd account
+        $expectedId = 6;
+        $result = $accountService->getByIdEnriched($expectedId);
         $data = $result->getAccountVData();
 
-        $this->assertEquals(4, $data->getId());
+        $this->assertEquals($expectedId, $data->getId());
         $this->assertEquals(1, $data->getUserId());
         $this->assertEquals(2, $data->getUserGroupId());
         $this->assertEquals('Google', $data->getName());
@@ -162,7 +158,7 @@ class SyspassImportTest extends DatabaseTestCase
         $this->assertEquals('blablacar', $data->getNotes());
         $this->assertEquals('admin', $data->getLogin());
 
-        $accountService->withTagsById($result);
+        $accountService->withTags($result);
 
         $expectedTags = [8, 9, 1];
         $i = 0;
@@ -176,11 +172,12 @@ class SyspassImportTest extends DatabaseTestCase
 
         $this->assertEquals('\'ynHRMJy-fRa', Crypt::decrypt($pass->getPass(), $pass->getKey(), '12345678900'));
 
-        // 1st account
-        $result = $accountService->getById(5);
+        // 3rd account
+        $expectedId = 7;
+        $result = $accountService->getByIdEnriched($expectedId);
         $data = $result->getAccountVData();
 
-        $this->assertEquals(5, $data->getId());
+        $this->assertEquals($expectedId, $data->getId());
         $this->assertEquals(1, $data->getUserId());
         $this->assertEquals(2, $data->getUserGroupId());
         $this->assertEquals('Test CSV 1', $data->getName());
@@ -194,11 +191,12 @@ class SyspassImportTest extends DatabaseTestCase
 
         $this->assertEquals('csv_pass1', Crypt::decrypt($pass->getPass(), $pass->getKey(), '12345678900'));
 
-        // 2nd account
-        $result = $accountService->getById(6);
+        // 4th account
+        $expectedId = 8;
+        $result = $accountService->getByIdEnriched($expectedId);
         $data = $result->getAccountVData();
 
-        $this->assertEquals(6, $data->getId());
+        $this->assertEquals($expectedId, $data->getId());
         $this->assertEquals(1, $data->getUserId());
         $this->assertEquals(2, $data->getUserGroupId());
         $this->assertEquals('Test CSV 2', $data->getName());
@@ -212,11 +210,12 @@ class SyspassImportTest extends DatabaseTestCase
 
         $this->assertEquals('csv_pass2', Crypt::decrypt($pass->getPass(), $pass->getKey(), '12345678900'));
 
-        // 3rd account
-        $result = $accountService->getById(7);
+        // 5th account
+        $expectedId = 9;
+        $result = $accountService->getByIdEnriched($expectedId);
         $data = $result->getAccountVData();
 
-        $this->assertEquals(7, $data->getId());
+        $this->assertEquals($expectedId, $data->getId());
         $this->assertEquals(1, $data->getUserId());
         $this->assertEquals(2, $data->getUserGroupId());
         $this->assertEquals('Test CSV 3', $data->getName());
@@ -230,6 +229,6 @@ class SyspassImportTest extends DatabaseTestCase
 
         $this->assertEquals('csv_pass3', Crypt::decrypt($pass->getPass(), $pass->getKey(), '12345678900'));
 
-        $this->assertEquals(7, $this->conn->getRowCount('Account'));
+        $this->assertEquals(9, self::getRowCount('Account'));
     }
 }

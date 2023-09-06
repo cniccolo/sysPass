@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Modules\Web\Forms;
@@ -27,7 +27,7 @@ namespace SP\Modules\Web\Forms;
 use SP\Core\Acl\ActionsInterface;
 use SP\Core\Exceptions\ValidationException;
 use SP\DataModel\PublicLinkData;
-use SP\Services\PublicLink\PublicLinkService;
+use SP\Domain\Account\Services\PublicLinkService;
 
 /**
  * Class PublicLinkForm
@@ -36,21 +36,23 @@ use SP\Services\PublicLink\PublicLinkService;
  */
 final class PublicLinkForm extends FormBase implements FormInterface
 {
-    /**
-     * @var PublicLinkData
-     */
-    protected $publicLinkData;
+    protected ?PublicLinkData $publicLinkData = null;
 
     /**
      * Validar el formulario
      *
-     * @param $action
+     * @param  int  $action
+     * @param  int|null  $id
      *
      * @return PublicLinkForm
      * @throws ValidationException
      */
-    public function validate($action)
+    public function validateFor(int $action, ?int $id = null): FormInterface
     {
+        if ($id !== null) {
+            $this->itemId = $id;
+        }
+
         switch ($action) {
             case ActionsInterface::PUBLICLINK_CREATE:
             case ActionsInterface::PUBLICLINK_EDIT:
@@ -67,7 +69,7 @@ final class PublicLinkForm extends FormBase implements FormInterface
      *
      * @return void
      */
-    protected function analyzeRequestData()
+    protected function analyzeRequestData(): void
     {
         $this->publicLinkData = new PublicLinkData();
         $this->publicLinkData->setId($this->itemId);
@@ -79,17 +81,14 @@ final class PublicLinkForm extends FormBase implements FormInterface
     /**
      * @throws ValidationException
      */
-    protected function checkCommon()
+    protected function checkCommon(): void
     {
         if (!$this->publicLinkData->getItemId()) {
             throw new ValidationException(__u('An account is needed'));
         }
     }
 
-    /**
-     * @return mixed
-     */
-    public function getItemData()
+    public function getItemData(): ?PublicLinkData
     {
         return $this->publicLinkData;
     }

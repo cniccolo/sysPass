@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Core\UI;
@@ -36,14 +36,14 @@ interface ThemeInterface
      *
      * @return mixed
      */
-    public function initTheme($force = false);
+    public function initTheme(bool $force): void;
 
     /**
      * Obtener los temas disponibles desde el directorio de temas
      *
      * @return array Con la información del tema
      */
-    public function getThemesAvailable();
+    public function getThemesAvailable(): array;
 
     /**
      * Obtener la información del tema desde el archivo de información
@@ -56,30 +56,30 @@ interface ThemeInterface
      *          'css' => array
      *  )
      */
-    public function getThemeInfo();
+    public function getThemeInfo(): array;
 
     /**
      * @return string
      */
-    public function getThemeUri();
+    public function getThemeUri(): string;
 
     /**
      * @return string
      */
-    public function getThemePath();
+    public function getThemePath(): string;
 
     /**
      * @return string
      */
-    public function getThemeName();
+    public function getThemeName(): string;
 
     /**
      * @return ThemeIcons
      */
-    public function getIcons();
+    public function getIcons(): ThemeIcons;
 
     /**
      * @return string
      */
-    public function getViewsPath();
+    public function getViewsPath(): string;
 }

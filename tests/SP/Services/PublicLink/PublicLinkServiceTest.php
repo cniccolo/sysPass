@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\PublicLink;
@@ -28,7 +28,6 @@ use Defuse\Crypto\Exception\CryptoException;
 use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
 use DI\DependencyException;
 use DI\NotFoundException;
-use SP\Config\ConfigData;
 use SP\Core\Context\ContextException;
 use SP\Core\Crypt\Vault;
 use SP\Core\Exceptions\ConstraintException;
@@ -38,11 +37,12 @@ use SP\DataModel\AccountExtData;
 use SP\DataModel\ItemSearchData;
 use SP\DataModel\PublicLinkData;
 use SP\DataModel\PublicLinkListData;
-use SP\Repositories\DuplicatedItemException;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\PublicLink\PublicLinkService;
-use SP\Services\ServiceException;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Account\Ports\PublicLinkServiceInterface;
+use SP\Domain\Account\Services\PublicLinkService;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\Config\Ports\ConfigDataInterface;
+use SP\Infrastructure\Common\Repositories\DuplicatedItemException;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use SP\Util\PasswordUtil;
 use SP\Util\Util;
@@ -60,7 +60,7 @@ class PublicLinkServiceTest extends DatabaseTestCase
      */
     private static $salt;
     /**
-     * @var PublicLinkService
+     * @var PublicLinkServiceInterface
      */
     private static $service;
 
@@ -69,19 +69,16 @@ class PublicLinkServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_publicLink.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
         self::$service = $dic->get(PublicLinkService::class);
 
-        self::$salt = $dic->get(ConfigData::class)->getPasswordSalt();
+        self::$salt = $dic->get(ConfigDataInterface::class)->getPasswordSalt();
     }
 
     /**
@@ -309,7 +306,7 @@ class PublicLinkServiceTest extends DatabaseTestCase
         self::$service->delete(2);
         self::$service->delete(3);
 
-        $this->assertEquals(0, $this->conn->getRowCount('PublicLink'));
+        $this->assertEquals(0, self::getRowCount('PublicLink'));
 
         $this->expectException(NoSuchItemException::class);
 
@@ -346,7 +343,7 @@ class PublicLinkServiceTest extends DatabaseTestCase
     {
         $this->assertEquals(2, self::$service->deleteByIdBatch([2, 3]));
 
-        $this->assertEquals(0, $this->conn->getRowCount('PublicLink'));
+        $this->assertEquals(0, self::getRowCount('PublicLink'));
 
         $this->expectException(ServiceException::class);
 

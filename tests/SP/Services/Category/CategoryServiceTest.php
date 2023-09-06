@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Category;
@@ -32,11 +32,10 @@ use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
 use SP\DataModel\CategoryData;
 use SP\DataModel\ItemSearchData;
-use SP\Repositories\DuplicatedItemException;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\Category\CategoryService;
-use SP\Services\ServiceException;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Category\Services\CategoryService;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Infrastructure\Common\Repositories\DuplicatedItemException;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use stdClass;
 use function SP\Tests\setupContext;
@@ -49,7 +48,7 @@ use function SP\Tests\setupContext;
 class CategoryServiceTest extends DatabaseTestCase
 {
     /**
-     * @var CategoryService
+     * @var \SP\Domain\Category\Ports\CategoryServiceInterface
      */
     private static $service;
 
@@ -58,14 +57,11 @@ class CategoryServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$service = $dic->get(CategoryService::class);
@@ -131,7 +127,7 @@ class CategoryServiceTest extends DatabaseTestCase
      */
     public function testGetAllBasic()
     {
-        $count = $this->conn->getRowCount('Category');
+        $count = self::getRowCount('Category');
 
         $data = self::$service->getAllBasic();
 
@@ -154,11 +150,11 @@ class CategoryServiceTest extends DatabaseTestCase
      */
     public function testDeleteByIdBatch()
     {
-        $countBefore = $this->conn->getRowCount('Category');
+        $countBefore = self::getRowCount('Category');
 
         $this->assertEquals(1, self::$service->deleteByIdBatch([3]));
 
-        $countAfter = $this->conn->getRowCount('Category');
+        $countAfter = self::getRowCount('Category');
 
         $this->assertEquals($countBefore - 1, $countAfter);
 
@@ -177,7 +173,7 @@ class CategoryServiceTest extends DatabaseTestCase
      */
     public function testCreate()
     {
-        $countBefore = $this->conn->getRowCount('Category');
+        $countBefore = self::getRowCount('Category');
 
         $data = new CategoryData();
         $data->name = 'Categoría prueba';
@@ -191,7 +187,7 @@ class CategoryServiceTest extends DatabaseTestCase
         $this->assertEquals($data->name, $result->getName());
         $this->assertEquals($data->description, $result->getDescription());
 
-        $countAfter = $this->conn->getRowCount('Category');
+        $countAfter = self::getRowCount('Category');
 
         $this->assertEquals($countBefore + 1, $countAfter);
 
@@ -259,11 +255,11 @@ class CategoryServiceTest extends DatabaseTestCase
      */
     public function testDelete()
     {
-        $countBefore = $this->conn->getRowCount('Category');
+        $countBefore = self::getRowCount('Category');
 
         self::$service->delete(3);
 
-        $countAfter = $this->conn->getRowCount('Category');
+        $countAfter = self::getRowCount('Category');
 
         $this->assertEquals($countBefore - 1, $countAfter);
 

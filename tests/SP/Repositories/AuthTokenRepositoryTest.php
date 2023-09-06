@@ -37,9 +37,8 @@ use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
 use SP\DataModel\AuthTokenData;
 use SP\DataModel\ItemSearchData;
-use SP\Repositories\AuthToken\AuthTokenRepository;
-use SP\Repositories\DuplicatedItemException;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Infrastructure\Auth\Repositories\AuthTokenRepository;
+use SP\Infrastructure\Common\Repositories\DuplicatedItemException;
 use SP\Tests\DatabaseTestCase;
 use SP\Util\PasswordUtil;
 use SP\Util\Util;
@@ -57,7 +56,7 @@ class AuthTokenRepositoryTest extends DatabaseTestCase
     const AUTH_TOKEN_PASS = 123456;
 
     /**
-     * @var AuthTokenRepository
+     * @var \SP\Infrastructure\Auth\Repositories\AuthTokenRepository
      */
     private static $repository;
 
@@ -66,14 +65,11 @@ class AuthTokenRepositoryTest extends DatabaseTestCase
      * @throws NotFoundException
      * @throws ContextException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(AuthTokenRepository::class);
@@ -93,7 +89,7 @@ class AuthTokenRepositoryTest extends DatabaseTestCase
         $this->assertInstanceOf(AuthTokenData::class, $data);
         $this->assertEquals(1, $data->getId());
         $this->assertEquals(ActionsInterface::ACCOUNT_SEARCH, $data->getActionId());
-        $this->assertEquals(self::AUTH_TOKEN, $data->getToken());
+        $this->assertEquals('12b9027d24efff7bfbaca8bd774a4c34b45de35e033d2b192a88f4dfaee5c233', $data->getToken());
         $this->assertNull($data->getHash());
 
         $result = self::$repository->getById(2);
@@ -116,7 +112,7 @@ class AuthTokenRepositoryTest extends DatabaseTestCase
     {
         $this->assertEquals(self::AUTH_TOKEN, self::$repository->getTokenByUserId(1));
 
-        $this->assertNull(self::$repository->getTokenByUserId(2));
+        $this->assertNull(self::$repository->getTokenByUserId(3));
     }
 
     /**
@@ -184,12 +180,12 @@ class AuthTokenRepositoryTest extends DatabaseTestCase
         $token = PasswordUtil::generateRandomBytes();
 
         // Comprobar actualización con usuario que existe
-        $this->assertEquals(2, self::$repository->refreshTokenByUserId(1, $token));
+        $this->assertEquals(4, self::$repository->refreshTokenByUserId(1, $token));
         $this->assertEquals($token, self::$repository->getTokenByUserId(1));
 
         // Comprobar actualización con usuario que NO existe
-        $this->assertEquals(0, self::$repository->refreshTokenByUserId(2, $token));
-        $this->assertNull(self::$repository->getTokenByUserId(2));
+        $this->assertEquals(0, self::$repository->refreshTokenByUserId(10, $token));
+        $this->assertNull(self::$repository->getTokenByUserId(10));
     }
 
     /**
@@ -248,15 +244,15 @@ class AuthTokenRepositoryTest extends DatabaseTestCase
         $result = self::$repository->search($itemSearchData);
         $data = $result->getDataAsArray();
 
-        $this->assertEquals(2, $result->getNumRows());
-        $this->assertCount(2, $data);
+        $this->assertEquals(4, $result->getNumRows());
+        $this->assertCount(4, $data);
 
         $this->assertInstanceOf(stdClass::class, $data[0]);
         $this->assertEquals(ActionsInterface::ACCOUNT_SEARCH, $data[0]->actionId);
         $this->assertEquals(self::AUTH_TOKEN, $data[0]->token);
 
         $this->assertInstanceOf(stdClass::class, $data[1]);
-        $this->assertEquals(ActionsInterface::ACCOUNT_VIEW_PASS, $data[1]->actionId);
+        $this->assertEquals(ActionsInterface::ACCOUNT_VIEW, $data[1]->actionId);
         $this->assertEquals(self::AUTH_TOKEN, $data[1]->token);
 
         $itemSearchData = new ItemSearchData();
@@ -274,10 +270,11 @@ class AuthTokenRepositoryTest extends DatabaseTestCase
      */
     public function testDeleteByIdBatch()
     {
-        $this->assertEquals(2, $this->conn->getRowCount('AuthToken'));
+        $this->assertEquals(5, self::getRowCount('AuthToken'));
 
-        $this->assertEquals(2, self::$repository->deleteByIdBatch([1, 2, 3]));
-        $this->assertEquals(0, $this->conn->getRowCount('AuthToken'));
+        $this->assertEquals(3, self::$repository->deleteByIdBatch([1, 2, 3]));
+
+        $this->assertEquals(2, self::getRowCount('AuthToken'));
 
         $this->assertEquals(0, self::$repository->deleteByIdBatch([]));
     }
@@ -325,8 +322,8 @@ class AuthTokenRepositoryTest extends DatabaseTestCase
         $authTokenData->setVault($vault);
         $authTokenData->setUserId(2);
 
-        $this->assertEquals(3, self::$repository->create($authTokenData));
-        $this->assertEquals(3, $this->conn->getRowCount('AuthToken'));
+        $this->assertEquals(6, self::$repository->create($authTokenData));
+        $this->assertEquals(6, self::getRowCount('AuthToken'));
 
         $result = self::$repository->getTokenByToken(ActionsInterface::ACCOUNT_CREATE, $token);
         /** @var AuthTokenData $data */
@@ -336,7 +333,7 @@ class AuthTokenRepositoryTest extends DatabaseTestCase
         $this->assertInstanceOf(AuthTokenData::class, $data);
         $this->assertEquals(ActionsInterface::ACCOUNT_CREATE, $data->getActionId());
         $this->assertEquals($hash, $data->getHash());
-        $this->assertEquals(3, $data->getId());
+        $this->assertEquals(6, $data->getId());
         $this->assertEquals(2, $data->getUserId());
         $this->assertEquals($vault->getSerialized(), $data->getVault());
 

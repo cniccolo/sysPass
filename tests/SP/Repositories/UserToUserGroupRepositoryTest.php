@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,10 +19,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace SP\Tests\SP\Repositories;
+namespace SP\Tests\Repositories;
 
 use DI\DependencyException;
 use DI\NotFoundException;
@@ -30,20 +30,20 @@ use SP\Core\Context\ContextException;
 use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
 use SP\DataModel\UserToUserGroupData;
-use SP\Repositories\UserGroup\UserToUserGroupRepository;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\User\Ports\UserToUserGroupRepositoryInterface;
+use SP\Infrastructure\User\Repositories\UserToUserGroupRepository;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
 /**
  * Class UserToUserGroupRepositoryTest
  *
- * @package SP\Tests\SP\Repositories
+ * @package SP\Tests\SP\Infrastructure\Common\Repositories
  */
 class UserToUserGroupRepositoryTest extends DatabaseTestCase
 {
     /**
-     * @var UserToUserGroupRepository
+     * @var UserToUserGroupRepositoryInterface
      */
     private static $repository;
 
@@ -52,14 +52,11 @@ class UserToUserGroupRepositoryTest extends DatabaseTestCase
      * @throws NotFoundException
      * @throws ContextException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_userGroup.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(UserToUserGroupRepository::class);
@@ -82,13 +79,12 @@ class UserToUserGroupRepositoryTest extends DatabaseTestCase
 
         $result = self::$repository->getGroupsForUser(2);
 
-        $this->assertEquals(2, $result->getNumRows());
+        $this->assertEquals(1, $result->getNumRows());
 
         $data = $result->getDataAsArray();
 
-        $this->assertCount(2, $data);
+        $this->assertCount(1, $data);
         $this->assertEquals(1, $data[0]->userGroupId);
-        $this->assertEquals(3, $data[1]->userGroupId);
 
         $this->assertEquals(0, self::$repository->getGroupsForUser(10)->getNumRows());
     }
@@ -146,12 +142,12 @@ class UserToUserGroupRepositoryTest extends DatabaseTestCase
         $this->assertEquals(2, $data[1]->getUserGroupId());
         $this->assertEquals(3, $data[1]->getUserId());
 
-        $data = self::$repository->getById(3)->getDataAsArray();
+        $data = self::$repository->getById(1)->getDataAsArray();
 
         $this->assertCount(1, $data);
 
         $this->assertInstanceOf(UserToUserGroupData::class, $data[0]);
-        $this->assertEquals(3, $data[0]->getUserGroupId());
+        $this->assertEquals(1, $data[0]->getUserGroupId());
         $this->assertEquals(2, $data[0]->getUserId());
 
         $this->assertEquals(0, self::$repository->getById(10)->getNumRows());

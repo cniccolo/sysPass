@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2023, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,29 +19,19 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Providers\Auth;
 
-use DI\Container;
-use DI\DependencyException;
-use DI\NotFoundException;
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
-use SP\Config\ConfigData;
+use SP\Core\Application;
+use SP\Core\Exceptions\SPException;
 use SP\DataModel\UserLoginData;
-use SP\Providers\Auth\Browser\Browser;
-use SP\Providers\Auth\Browser\BrowserAuthData;
-use SP\Providers\Auth\Database\Database;
-use SP\Providers\Auth\Database\DatabaseAuthData;
-use SP\Providers\Auth\Ldap\Ldap;
-use SP\Providers\Auth\Ldap\LdapAuth;
-use SP\Providers\Auth\Ldap\LdapAuthData;
-use SP\Providers\Auth\Ldap\LdapException;
-use SP\Providers\Auth\Ldap\LdapParams;
+use SP\Domain\Auth\Ports\LdapAuthInterface;
+use SP\Domain\Auth\Services\AuthException;
+use SP\Providers\Auth\Browser\BrowserAuthInterface;
+use SP\Providers\Auth\Database\DatabaseAuthInterface;
 use SP\Providers\Provider;
-use SP\Services\Auth\AuthException;
 
 defined('APP_ROOT') || die();
 
@@ -52,178 +42,123 @@ defined('APP_ROOT') || die();
  *
  * @package SP\Providers\Auth
  */
-final class AuthProvider extends Provider
+class AuthProvider extends Provider implements AuthProviderInterface
 {
     /**
-     * @var array
+     * @var callable[]
      */
-    protected $auths = [];
-    /**
-     * @var UserLoginData
-     */
-    protected $userLoginData;
-    /**
-     * @var ConfigData
-     */
-    protected $configData;
-    /**
-     * @var Browser
-     */
-    protected $browser;
-    /**
-     * @var Database
-     */
-    protected $database;
+    protected array                 $auths       = [];
+    protected DatabaseAuthInterface $databaseAuth;
+    protected ?BrowserAuthInterface $browserAuth = null;
+    protected ?LdapAuthInterface    $ldapAuth    = null;
+
+    public function __construct(
+        Application $application,
+        DatabaseAuthInterface $databaseAuth
+    ) {
+        parent::__construct($application);
+
+        $this->databaseAuth = $databaseAuth;
+    }
 
     /**
      * Probar los métodos de autentificación
      *
-     * @param UserLoginData $userLoginData
+     * @param  UserLoginData  $userLoginData
      *
      * @return false|AuthResult[]
-     * @uses authDatabase
-     * @uses authBrowser
-     *
-     * @uses authLdap
      */
     public function doAuth(UserLoginData $userLoginData)
     {
-        $this->userLoginData = $userLoginData;
+        $authsResult = [];
 
-        $auths = [];
+        foreach ($this->auths as $authName => $auth) {
+            $data = $auth($userLoginData);
 
-        foreach ($this->auths as $authType) {
-            /** @var AuthDataBase $data */
-            $data = $this->{$authType}();
-
-            if ($data !== false) {
-                $auths[] = new AuthResult($authType, $data);
+            if ($data instanceof AuthDataBase) {
+                $authsResult[] = new AuthResult($authName, $data);
             }
         }
 
-        return count($auths) > 0 ? $auths : false;
+        return count($authsResult) > 0 ? $authsResult : false;
     }
 
     /**
-     * Autentificación de usuarios con LDAP.
+     * Auth initializer
      *
-     * @return bool|LdapAuthData
      * @throws AuthException
-     * @throws LdapException
      */
-    public function authLdap()
+    public function initialize(): void
     {
-        $ldap = $this->getLdapAuth();
-        $ldapAuthData = $ldap->getLdapAuthData();
+        $configData = $this->config->getConfigData();
 
-        $ldapAuthData->setAuthenticated($ldap->authenticate($this->userLoginData));
-
-        if ($ldapAuthData->getAuthenticated()) {
-            // Comprobamos si la cuenta está bloqueada o expirada
-            if ($ldapAuthData->getExpire() > 0) {
-                $ldapAuthData->setStatusCode(LdapAuth::ACCOUNT_EXPIRED);
-            } elseif (!$ldapAuthData->isInGroup()) {
-                $ldapAuthData->setStatusCode(LdapAuth::ACCOUNT_NO_GROUPS);
-            }
+        if ($this->browserAuth && $configData->isAuthBasicEnabled()) {
+            $this->registerAuth(
+                function (UserLoginData $userLoginData) {
+                    $this->browserAuth->authenticate($userLoginData);
+                },
+                'authBrowser'
+            );
         }
 
-        return $ldapAuthData;
-    }
+        if ($this->ldapAuth && $configData->isLdapEnabled()) {
+            $this->registerAuth(
+                function (UserLoginData $userLoginData) {
+                    $ldapAuthData = $this->ldapAuth->getLdapAuthData();
 
-    /**
-     * @return LdapAuth
-     * @throws LdapException
-     */
-    private function getLdapAuth()
-    {
-        $data = LdapParams::getServerAndPort($this->configData->getLdapServer());
+                    $ldapAuthData->setAuthenticated($this->ldapAuth->authenticate($userLoginData));
 
-        $ldapParams = (new LdapParams())
-            ->setServer($data['server'])
-            ->setPort(isset($data['port']) ? $data['port'] : 389)
-            ->setSearchBase($this->configData->getLdapBase())
-            ->setGroup($this->configData->getLdapGroup())
-            ->setBindDn($this->configData->getLdapBindUser())
-            ->setBindPass($this->configData->getLdapBindPass())
-            ->setType($this->configData->getLdapType());
+                    if ($ldapAuthData->getAuthenticated()) {
+                        // Comprobamos si la cuenta está bloqueada o expirada
+                        if ($ldapAuthData->getExpire() > 0) {
+                            $ldapAuthData->setStatusCode(LdapAuthInterface::ACCOUNT_EXPIRED);
+                        } elseif (!$ldapAuthData->isInGroup()) {
+                            $ldapAuthData->setStatusCode(LdapAuthInterface::ACCOUNT_NO_GROUPS);
+                        }
+                    }
 
-        return new LdapAuth(
-            Ldap::factory(
-                $ldapParams,
-                $this->eventDispatcher,
-                $this->configData->isDebug()),
-            $this->eventDispatcher
+                    return $ldapAuthData;
+                },
+                'authLdap'
+            );
+        }
+
+        $this->registerAuth(
+            function (UserLoginData $userLoginData) {
+                return $this->databaseAuth->authenticate($userLoginData);
+            },
+            'authDatabase'
         );
-    }
-
-    /**
-     * Autentificación de usuarios con base de datos
-     *
-     * Esta función comprueba la clave del usuario. Si el usuario necesita ser migrado,
-     * se ejecuta el proceso para actualizar la clave.
-     *
-     * @return DatabaseAuthData
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    public function authDatabase()
-    {
-        return $this->database->authenticate($this->userLoginData);
-    }
-
-    /**
-     * Autentificación de usuario con credenciales del navegador
-     *
-     * @return BrowserAuthData
-     */
-    public function authBrowser()
-    {
-        return $this->browser->authenticate($this->userLoginData);
-    }
-
-    /**
-     * Auth constructor.
-     *
-     * @param Container $dic
-     *
-     * @throws AuthException
-     * @throws DependencyException
-     * @throws NotFoundException
-     */
-    protected function initialize(Container $dic)
-    {
-        $this->configData = $this->config->getConfigData();
-
-        if ($this->configData->isAuthBasicEnabled()) {
-            $this->registerAuth('authBrowser');
-            $this->browser = $dic->get(Browser::class);
-        }
-
-        if ($this->configData->isLdapEnabled()) {
-            $this->registerAuth('authLdap');
-        }
-
-        $this->registerAuth('authDatabase');
-        $this->database = $dic->get(Database::class);
     }
 
     /**
      * Registrar un método de autentificación primarios
      *
-     * @param string $auth Función de autentificación
+     * @param  callable  $auth  Función de autentificación
+     * @param  string  $name
      *
      * @throws AuthException
      */
-    protected function registerAuth($auth)
+    private function registerAuth(callable $auth, string $name): void
     {
-        if (!method_exists($this, $auth)) {
-            throw new AuthException(__u('Method unavailable'), AuthException::ERROR, __FUNCTION__);
+        if (array_key_exists($name, $this->auths)) {
+            throw new AuthException(
+                __u('Authentication already initialized'),
+                SPException::ERROR,
+                __FUNCTION__
+            );
         }
 
-        if (array_key_exists($auth, $this->auths)) {
-            throw new AuthException(__u('Method already initialized'), AuthException::ERROR, __FUNCTION__);
-        }
+        $this->auths[$name] = $auth;
+    }
 
-        $this->auths[$auth] = $auth;
+    public function withLdapAuth(LdapAuthInterface $ldapAuth): void
+    {
+        $this->ldapAuth = $ldapAuth;
+    }
+
+    public function withBrowserAuth(BrowserAuthInterface $browserAuth): void
+    {
+        $this->browserAuth = $browserAuth;
     }
 }

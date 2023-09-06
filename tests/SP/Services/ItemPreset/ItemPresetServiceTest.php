@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2023, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\ItemPreset;
@@ -31,12 +31,11 @@ use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\NoSuchPropertyException;
 use SP\Core\Exceptions\QueryException;
 use SP\DataModel\ItemPreset\AccountPermission;
-use SP\DataModel\ItemPresetData;
 use SP\DataModel\ItemSearchData;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\ItemPreset\ItemPresetRequest;
-use SP\Services\ItemPreset\ItemPresetService;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Account\Models\ItemPreset;
+use SP\Domain\ItemPreset\Services\ItemPresetRequest;
+use SP\Domain\ItemPreset\Services\ItemPresetService;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use stdClass;
 use function SP\Tests\setupContext;
@@ -58,42 +57,17 @@ class ItemPresetServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_itemPreset.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
         self::$service = $dic->get(ItemPresetService::class);
     }
 
-    /**
-     * @dataProvider userDataProvider
-     *
-     * @param int $userId
-     * @param int $userGroupId
-     * @param int $userProfileId
-     * @param int $expected
-     *
-     * @throws ConstraintException
-     * @throws QueryException
-     */
-    public function testGetForUser($userId, $userGroupId, $userProfileId, $expected)
-    {
-        $result = self::$service->getForUser('permission', $userId, $userGroupId, $userProfileId);
-
-        $this->assertInstanceOf(ItemPresetData::class, $result);
-        $this->assertEquals($expected, $result->getId());
-    }
-
-    /**
-     * @return array
-     */
-    public function userDataProvider()
+    public static function userDataProvider(): array
     {
         return [
             [1, 1, 1, 3],
@@ -108,13 +82,32 @@ class ItemPresetServiceTest extends DatabaseTestCase
     }
 
     /**
+     * @dataProvider userDataProvider
+     *
+     * @param  int  $userId
+     * @param  int  $userGroupId
+     * @param  int  $userProfileId
+     * @param  int  $expected
+     *
+     * @throws ConstraintException
+     * @throws QueryException
+     */
+    public function testGetForUser($userId, $userGroupId, $userProfileId, $expected)
+    {
+        $result = self::$service->getForUser('permission', $userId, $userGroupId, $userProfileId);
+
+        $this->assertInstanceOf(ItemPreset::class, $result);
+        $this->assertEquals($expected, $result->getId());
+    }
+
+    /**
      * @throws ConstraintException
      * @throws QueryException
      * @throws NoSuchItemException
      */
     public function testGetById()
     {
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->id = 1;
         $data->userId = 1;
         $data->fixed = 0;
@@ -123,7 +116,7 @@ class ItemPresetServiceTest extends DatabaseTestCase
 
         $result = self::$service->getById(1);
 
-        $this->assertInstanceOf(ItemPresetData::class, $result);
+        $this->assertInstanceOf(ItemPreset::class, $result);
         $this->assertEquals($data, $result);
     }
 
@@ -133,12 +126,12 @@ class ItemPresetServiceTest extends DatabaseTestCase
      */
     public function testGetAll()
     {
-        $count = $this->conn->getRowCount('ItemPreset');
+        $count = self::getRowCount('ItemPreset');
 
         $result = self::$service->getAll();
         $this->assertCount($count, $result);
 
-        $this->assertInstanceOf(ItemPresetData::class, $result[0]);
+        $this->assertInstanceOf(ItemPreset::class, $result[0]);
         $this->assertEquals(1, $result[0]->getId());
         $this->assertEquals('permission', $result[0]->getType());
         $this->assertEquals(1, $result[0]->getUserId());
@@ -148,10 +141,10 @@ class ItemPresetServiceTest extends DatabaseTestCase
         $this->assertEquals(0, $result[0]->getFixed());
         $this->assertEquals(0, $result[0]->getPriority());
 
-        $this->assertInstanceOf(ItemPresetData::class, $result[1]);
+        $this->assertInstanceOf(ItemPreset::class, $result[1]);
         $this->assertEquals(2, $result[1]->getId());
 
-        $this->assertInstanceOf(ItemPresetData::class, $result[2]);
+        $this->assertInstanceOf(ItemPreset::class, $result[2]);
         $this->assertEquals(3, $result[2]->getId());
     }
 
@@ -169,7 +162,7 @@ class ItemPresetServiceTest extends DatabaseTestCase
         $accountPermission->setUserGroupsView([2]);
         $accountPermission->setUserGroupsEdit([1, 3]);
 
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->id = 1;
         $data->userGroupId = 1;
         $data->fixed = 1;
@@ -198,7 +191,7 @@ class ItemPresetServiceTest extends DatabaseTestCase
         $accountPermission->setUserGroupsView([2]);
         $accountPermission->setUserGroupsEdit([1, 3]);
 
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->id = 10;
         $data->userGroupId = 1;
         $data->fixed = 1;
@@ -221,7 +214,7 @@ class ItemPresetServiceTest extends DatabaseTestCase
             ->delete(3)
             ->delete(4);
 
-        $this->assertEquals(3, $this->conn->getRowCount('ItemPreset'));
+        $this->assertEquals(3, self::getRowCount('ItemPreset'));
     }
 
     /**
@@ -325,7 +318,7 @@ class ItemPresetServiceTest extends DatabaseTestCase
     {
         $data = self::$service->getForCurrentUser('permission');
 
-        $this->assertInstanceOf(ItemPresetData::class, $data);
+        $this->assertInstanceOf(ItemPreset::class, $data);
         $this->assertEquals(2, $data->getId());
     }
 
@@ -343,7 +336,7 @@ class ItemPresetServiceTest extends DatabaseTestCase
         $accountPermission->setUserGroupsView([2]);
         $accountPermission->setUserGroupsEdit([1, 3]);
 
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->id = 6;
         $data->userGroupId = 1;
         $data->fixed = 1;
@@ -373,7 +366,7 @@ class ItemPresetServiceTest extends DatabaseTestCase
         $accountPermission->setUserGroupsView([2]);
         $accountPermission->setUserGroupsEdit([1, 3]);
 
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->userGroupId = 1;
         $data->fixed = 1;
         $data->priority = 10;

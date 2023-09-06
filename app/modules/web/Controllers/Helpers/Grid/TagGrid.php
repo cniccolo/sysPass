@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Modules\Web\Controllers\Helpers\Grid;
@@ -34,7 +34,7 @@ use SP\Html\DataGrid\DataGridData;
 use SP\Html\DataGrid\DataGridInterface;
 use SP\Html\DataGrid\DataGridTab;
 use SP\Html\DataGrid\Layout\DataGridHeader;
-use SP\Storage\Database\QueryResult;
+use SP\Infrastructure\Database\QueryResult;
 
 /**
  * Class TagGrid
@@ -43,10 +43,7 @@ use SP\Storage\Database\QueryResult;
  */
 final class TagGrid extends GridBase
 {
-    /**
-     * @var QueryResult
-     */
-    private $queryResult;
+    private ?QueryResult $queryResult = null;
 
     /**
      * @param QueryResult $queryResult
@@ -72,7 +69,8 @@ final class TagGrid extends GridBase
                 ->setName(__('Delete Selected'))
                 ->setTitle(__('Delete Selected'))
                 ->setIsSelection(true),
-            true);
+            true
+        );
 
         $grid->setTime(round(getElapsedTime($this->queryTimeStart), 5));
 
@@ -125,7 +123,7 @@ final class TagGrid extends GridBase
     /**
      * @return DataGridActionSearch
      */
-    private function getSearchAction()
+    private function getSearchAction(): DataGridActionSearch
     {
         // Grid Actions
         $gridActionSearch = new DataGridActionSearch();
@@ -134,7 +132,10 @@ final class TagGrid extends GridBase
         $gridActionSearch->setName('frmSearchTag');
         $gridActionSearch->setTitle(__('Search for Tag'));
         $gridActionSearch->setOnSubmitFunction('appMgmt/search');
-        $gridActionSearch->addData('action-route', Acl::getActionRoute(ActionsInterface::TAG_SEARCH));
+        $gridActionSearch->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::TAG_SEARCH)
+        );
 
         return $gridActionSearch;
     }
@@ -142,7 +143,7 @@ final class TagGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getCreateAction()
+    private function getCreateAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::TAG_CREATE);
@@ -152,7 +153,10 @@ final class TagGrid extends GridBase
         $gridAction->setIcon($this->icons->getIconAdd());
         $gridAction->setSkip(true);
         $gridAction->setOnClickFunction('appMgmt/show');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::TAG_CREATE));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::TAG_CREATE)
+        );
 
         return $gridAction;
     }
@@ -160,7 +164,7 @@ final class TagGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getEditAction()
+    private function getEditAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::TAG_EDIT);
@@ -169,7 +173,10 @@ final class TagGrid extends GridBase
         $gridAction->setTitle(__('Edit Tag'));
         $gridAction->setIcon($this->icons->getIconEdit());
         $gridAction->setOnClickFunction('appMgmt/show');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::TAG_EDIT));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::TAG_EDIT)
+        );
 
         return $gridAction;
     }
@@ -177,7 +184,7 @@ final class TagGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getDeleteAction()
+    private function getDeleteAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::TAG_DELETE);
@@ -186,7 +193,10 @@ final class TagGrid extends GridBase
         $gridAction->setTitle(__('Delete Tag'));
         $gridAction->setIcon($this->icons->getIconDelete());
         $gridAction->setOnClickFunction('appMgmt/delete');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::TAG_DELETE));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::TAG_DELETE)
+        );
 
         return $gridAction;
     }

@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2023, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,14 +19,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\DataModel;
-
-use SP\Util\DateUtil;
-
-defined('APP_ROOT') || die();
 
 /**
  * Class PublicLinkListData
@@ -35,72 +31,22 @@ defined('APP_ROOT') || die();
  */
 class PublicLinkListData extends PublicLinkData
 {
-    /**
-     * @var string
-     */
-    public $userName;
-    /**
-     * @var string
-     */
-    public $userLogin;
-    /**
-     * @var string
-     */
-    public $accountName;
+    protected ?string $userName    = null;
+    protected ?string $userLogin   = null;
+    protected ?string $accountName = null;
 
-    /**
-     * @return string
-     */
-    public function getName()
+    public function getName(): ?string
     {
         return $this->accountName;
     }
 
-    /**
-     * @return string
-     */
-    public function getUserName()
-    {
-        return $this->userName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUserLogin()
+    public function getUserLogin(): ?string
     {
         return $this->userLogin;
     }
 
-    /**
-     * @return string
-     */
-    public function getAccountName()
+    public function getAccountName(): ?string
     {
         return $this->accountName;
-    }
-
-    /**
-     * @return false|string
-     */
-    public function getDateAddFormat()
-    {
-        return DateUtil::getDateFromUnix($this->dateAdd);
-    }
-
-    /**
-     * @return false|string
-     */
-    public function getDateExpireFormat()
-    {
-        return DateUtil::getDateFromUnix($this->dateExpire);
-    }
-
-    /**
-     * @return string
-     */
-    public function getCountViewsString()
-    {
-        return sprintf('%d/%d/%d', $this->getCountViews(), $this->getMaxCountViews(), $this->getTotalCountViews());
     }
 }

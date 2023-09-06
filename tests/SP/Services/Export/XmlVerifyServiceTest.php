@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,21 +19,20 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Export;
 
-use Defuse\Crypto\Exception\CryptoException;
 use DI\DependencyException;
 use DI\NotFoundException;
 use DOMDocument;
 use PHPUnit\Framework\TestCase;
 use SP\Core\Context\ContextException;
-use SP\Services\Export\VerifyResult;
-use SP\Services\Export\XmlVerifyService;
-use SP\Services\ServiceException;
-use SP\Storage\File\FileException;
+use SP\Domain\Export\Services\VerifyResult;
+use SP\Domain\Export\Services\XmlVerifyService;
+use SP\Domain\Import\Services\ImportException;
+use SP\Infrastructure\File\FileException;
 use function SP\Tests\setupContext;
 
 /**
@@ -44,7 +43,7 @@ use function SP\Tests\setupContext;
 class XmlVerifyServiceTest extends TestCase
 {
     /**
-     * @var XmlVerifyService
+     * @var \SP\Domain\Export\Ports\XmlVerifyServiceInterface
      */
     private static $xmlVerifyService;
 
@@ -53,7 +52,7 @@ class XmlVerifyServiceTest extends TestCase
      * @throws NotFoundException
      * @throws ContextException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
@@ -61,13 +60,13 @@ class XmlVerifyServiceTest extends TestCase
     }
 
     /**
-     * @throws CryptoException
-     * @throws ServiceException
      * @throws FileException
+     * @throws ImportException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testVerifyEncrypted()
     {
-        $file = RESOURCE_DIR . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass_encrypted.xml';
+        $file = RESOURCE_PATH . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass_encrypted.xml';
 
         $result = self::$xmlVerifyService->verifyEncrypted($file, 'test_encrypt');
 
@@ -84,12 +83,13 @@ class XmlVerifyServiceTest extends TestCase
     }
 
     /**
-     * @throws ServiceException
      * @throws FileException
+     * @throws \SP\Domain\Common\Services\ServiceException
+     * @throws ImportException
      */
     public function testVerify()
     {
-        $file = RESOURCE_DIR . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass.xml';
+        $file = RESOURCE_PATH . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass.xml';
 
         $result = self::$xmlVerifyService->verify($file);
 
@@ -108,17 +108,17 @@ class XmlVerifyServiceTest extends TestCase
     public function testCheckXmlHash()
     {
         $dom = new DOMDocument();
-        $dom->load(RESOURCE_DIR . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass_encrypted.xml');
+        $dom->load(RESOURCE_PATH . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass_encrypted.xml');
 
         $this->assertTrue(XmlVerifyService::checkXmlHash($dom, 'test_encrypt'));
 
-        $dom->load(RESOURCE_DIR . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass_invalid.xml');
+        $dom->load(RESOURCE_PATH . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass_invalid.xml');
 
         $this->assertFalse(XmlVerifyService::checkXmlHash($dom, 'test_encrypt'));
 
         $key = sha1('d5851082a3914a647a336d8910e24eb64b8f8adef24d27329040ebd0d4c1');
 
-        $dom->load(RESOURCE_DIR . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass_valid_hash.xml');
+        $dom->load(RESOURCE_PATH . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass_valid_hash.xml');
 
         $this->assertTrue(XmlVerifyService::checkXmlHash($dom, $key));
     }

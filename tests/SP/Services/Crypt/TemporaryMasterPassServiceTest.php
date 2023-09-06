@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Crypt;
@@ -30,9 +30,8 @@ use DI\NotFoundException;
 use PHPUnit\Framework\TestCase;
 use SP\Core\Context\ContextException;
 use SP\Core\Context\ContextInterface;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\Crypt\TemporaryMasterPassService;
-use SP\Services\ServiceException;
+use SP\Domain\Crypt\Services\TemporaryMasterPassService;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use function SP\Tests\setupContext;
 
 /**
@@ -47,7 +46,7 @@ class TemporaryMasterPassServiceTest extends TestCase
      */
     private $context;
     /**
-     * @var TemporaryMasterPassService
+     * @var \SP\Domain\Crypt\Ports\TemporaryMasterPassServiceInterface
      */
     private $service;
 
@@ -56,7 +55,7 @@ class TemporaryMasterPassServiceTest extends TestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public function setUp()
+    public function setUp(): void
     {
         $dic = setupContext();
 
@@ -67,7 +66,7 @@ class TemporaryMasterPassServiceTest extends TestCase
     }
 
     /**
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testCreate()
     {
@@ -86,7 +85,7 @@ class TemporaryMasterPassServiceTest extends TestCase
      *
      * @throws CryptoException
      * @throws NoSuchItemException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testGetUsingKey($key)
     {
@@ -102,7 +101,7 @@ class TemporaryMasterPassServiceTest extends TestCase
      *
      * @param $key
      *
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testCheckTempMasterPass($key)
     {
@@ -117,7 +116,7 @@ class TemporaryMasterPassServiceTest extends TestCase
     }
 
     /**
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testExpiredKey()
     {

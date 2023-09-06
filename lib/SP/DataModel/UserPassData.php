@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,135 +19,78 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\DataModel;
+
+use SP\Domain\Common\Models\Model;
 
 /**
  * Class UserPassData
  *
  * @package SP\DataModel
  */
-class UserPassData extends DataModelBase
+class UserPassData extends Model
 {
-    /**
-     * @var int
-     */
-    public $id = 0;
-    /**
-     * @var string
-     */
-    public $pass;
-    /**
-     * @var string
-     */
-    public $hashSalt;
-    /**
-     * @var string
-     */
-    public $mPass;
-    /**
-     * @var string
-     */
-    public $mKey;
-    /**
-     * @var int
-     */
-    public $lastUpdateMPass = 0;
+    protected ?int    $id              = null;
+    protected ?string $pass            = null;
+    protected ?string $hashSalt        = null;
+    protected ?string $mPass           = null;
+    protected ?string $mKey            = null;
+    protected ?int    $lastUpdateMPass = null;
 
-    /**
-     * @return string
-     */
-    public function getPass()
+    public function getPass(): ?string
     {
         return $this->pass;
     }
 
-    /**
-     * @param string $pass
-     */
-    public function setPass($pass)
+    public function setPass(string $pass)
     {
         $this->pass = $pass;
     }
 
-    /**
-     * @return string
-     */
-    public function getHashSalt()
+    public function getHashSalt(): ?string
     {
         return $this->hashSalt;
     }
 
-    /**
-     * @param string $hashSalt
-     */
-    public function setHashSalt($hashSalt)
-    {
-        $this->hashSalt = $hashSalt;
-    }
-
-    /**
-     * @return string
-     */
-    public function getMPass()
+    public function getMPass(): ?string
     {
         return $this->mPass;
     }
 
-    /**
-     * @param string $mPass
-     */
-    public function setMPass($mPass)
+    public function setMPass(string $mPass)
     {
         $this->mPass = $mPass;
     }
 
-    /**
-     * @return string
-     */
-    public function getMKey()
+    public function getMKey(): ?string
     {
         return $this->mKey;
     }
 
-    /**
-     * @param string $mKey
-     */
-    public function setMKey($mKey)
+    public function setMKey(string $mKey)
     {
         $this->mKey = $mKey;
     }
 
-    /**
-     * @return int
-     */
-    public function getLastUpdateMPass()
+    public function getLastUpdateMPass(): int
     {
         return (int)$this->lastUpdateMPass;
     }
 
-    /**
-     * @param int $lastUpdateMPass
-     */
-    public function setLastUpdateMPass($lastUpdateMPass)
+    public function setLastUpdateMPass(int $lastUpdateMPass)
     {
         $this->lastUpdateMPass = (int)$lastUpdateMPass;
     }
 
-    /**
-     * @return int
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return (int)$this->id;
     }
 
-    /**
-     * @param int $id
-     */
-    public function setId($id)
+    public function setId(int $id)
     {
         $this->id = (int)$id;
     }

@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,12 +19,12 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Util;
 
-use SP\Services\Install\Installer;
+use SP\Domain\Install\Services\InstallerService;
 
 /**
  * Class VersionUtil
@@ -35,23 +35,21 @@ final class VersionUtil
 {
     /**
      * Devolver versión normalizada en cadena
-     *
-     * @return string
      */
-    public static function getVersionStringNormalized()
+    public static function getVersionStringNormalized(): string
     {
-        return implode('', Installer::VERSION) . '.' . Installer::BUILD;
+        return implode('', InstallerService::VERSION).'.'.InstallerService::BUILD;
     }
 
     /**
      * Compare versions
      *
-     * @param string       $currentVersion
-     * @param array|string $upgradeableVersion
+     * @param  string  $currentVersion
+     * @param  array|string  $upgradeableVersion
      *
      * @return bool True if $currentVersion is lower than $upgradeableVersion
      */
-    public static function checkVersion($currentVersion, $upgradeableVersion)
+    public static function checkVersion(string $currentVersion, array|string $upgradeableVersion): bool
     {
         if (is_array($upgradeableVersion)) {
             $upgradeableVersion = array_pop($upgradeableVersion);
@@ -68,26 +66,33 @@ final class VersionUtil
             return version_compare($currentVersion, $upgradeableVersion) === -1;
         }
 
-        list($currentVersion, $build) = explode('.', $currentVersion, 2);
-        list($upgradeVersion, $upgradeBuild) = explode('.', $upgradeableVersion, 2);
+        [$currentVersion, $build] = explode('.', $currentVersion, 2);
+        [$upgradeVersion, $upgradeBuild] = explode('.', $upgradeableVersion, 2);
 
         $versionRes = (int)$currentVersion < (int)$upgradeVersion;
 
         return (($versionRes && (int)$upgradeBuild === 0)
-            || ($versionRes && (int)$build < (int)$upgradeBuild));
+                || ($versionRes && (int)$build < (int)$upgradeBuild));
     }
 
     /**
-     * Devuelve una versión normalizada para poder ser comparada
+     * Return a normalized version string to be compared
      *
-     * @param string $versionIn
+     * @param  array|string  $versionIn
      *
      * @return string
      */
-    public static function normalizeVersionForCompare($versionIn)
+    public static function normalizeVersionForCompare(array|string $versionIn): string
     {
-        if (is_string($versionIn) && !empty($versionIn)) {
-            list($version, $build) = explode('.', $versionIn);
+        if (!empty($versionIn)) {
+            if (is_string($versionIn)) {
+                [$version, $build] = explode('.', $versionIn);
+            } elseif (is_array($versionIn) && count($versionIn) === 4) {
+                $version = implode('', array_slice($versionIn, 0, 3));
+                $build = $versionIn[3];
+            } else {
+                return '';
+            }
 
             $nomalizedVersion = 0;
 
@@ -95,22 +100,24 @@ final class VersionUtil
                 $nomalizedVersion += (int)$value * (10 ** (3 - $key));
             }
 
-            return $nomalizedVersion . '.' . $build;
+            return $nomalizedVersion.'.'.$build;
         }
 
         return '';
     }
 
     /**
-     * @param string $version
+     * @param  string  $version
      *
      * @return float|int
      */
-    public static function versionToInteger(string $version)
+    public static function versionToInteger(string $version): float|int
     {
         $intVersion = 0;
 
-        foreach (str_split(str_replace('.', '', $version)) as $key => $value) {
+        $strSplit = str_split(str_replace('.', '', $version));
+
+        foreach ($strSplit as $key => $value) {
             $intVersion += (int)$value * (10 ** (3 - $key));
         }
 
@@ -120,30 +127,20 @@ final class VersionUtil
     /**
      * Devuelve la versión de sysPass.
      *
-     * @param bool $retBuild devolver el número de compilación
+     * @param  bool  $retBuild  devolver el número de compilación
      *
      * @return array con el número de versión
      */
-    public static function getVersionArray($retBuild = false)
+    public static function getVersionArray(bool $retBuild = false): array
     {
-        $version = array_values(Installer::VERSION);
+        $version = array_values(InstallerService::VERSION);
 
         if ($retBuild === true) {
-            $version[] = Installer::BUILD;
+            $version[] = InstallerService::BUILD;
 
             return $version;
         }
 
         return $version;
-    }
-
-    /**
-     * Devolver versión normalizada en array
-     *
-     * @return array
-     */
-    public static function getVersionArrayNormalized()
-    {
-        return [implode('', Installer::VERSION), Installer::BUILD];
     }
 }

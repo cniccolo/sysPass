@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,12 +19,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\DataModel;
 
 use SP\Core\Exceptions\InvalidArgumentException;
+use SP\Domain\Common\Models\Model;
 use SP\Http\Address;
 
 /**
@@ -32,7 +33,7 @@ use SP\Http\Address;
  *
  * @package SP\DataModel
  */
-class TrackData extends DataModelBase
+class TrackData extends Model
 {
     /**
      * @var int

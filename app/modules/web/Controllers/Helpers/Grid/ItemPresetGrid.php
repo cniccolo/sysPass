@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,13 +19,14 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Modules\Web\Controllers\Helpers\Grid;
 
 use SP\Core\Acl\Acl;
 use SP\Core\Acl\ActionsInterface;
+use SP\Domain\ItemPreset\Ports\ItemPresetInterface;
 use SP\Html\DataGrid\Action\DataGridAction;
 use SP\Html\DataGrid\Action\DataGridActionSearch;
 use SP\Html\DataGrid\Action\DataGridActionType;
@@ -33,8 +34,7 @@ use SP\Html\DataGrid\DataGridData;
 use SP\Html\DataGrid\DataGridInterface;
 use SP\Html\DataGrid\DataGridTab;
 use SP\Html\DataGrid\Layout\DataGridHeader;
-use SP\Services\ItemPreset\ItemPresetInterface;
-use SP\Storage\Database\QueryResult;
+use SP\Infrastructure\Database\QueryResult;
 
 /**
  * Class AccountDefaultPermissionGrid
@@ -43,10 +43,7 @@ use SP\Storage\Database\QueryResult;
  */
 final class ItemPresetGrid extends GridBase
 {
-    /**
-     * @var QueryResult
-     */
-    private $queryResult;
+    private ?QueryResult $queryResult = null;
 
     /**
      * @param QueryResult $queryResult
@@ -138,7 +135,7 @@ final class ItemPresetGrid extends GridBase
     /**
      * @return DataGridActionSearch
      */
-    private function getSearchAction()
+    private function getSearchAction(): DataGridActionSearch
     {
         // Grid Actions
         $gridActionSearch = new DataGridActionSearch();
@@ -147,7 +144,10 @@ final class ItemPresetGrid extends GridBase
         $gridActionSearch->setName('frmSearchItemPreset');
         $gridActionSearch->setTitle(__('Search for Value'));
         $gridActionSearch->setOnSubmitFunction('appMgmt/search');
-        $gridActionSearch->addData('action-route', Acl::getActionRoute(ActionsInterface::ITEMPRESET_SEARCH));
+        $gridActionSearch->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::ITEMPRESET_SEARCH)
+        );
 
         return $gridActionSearch;
     }
@@ -155,7 +155,7 @@ final class ItemPresetGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getCreatePermissionAction()
+    private function getCreatePermissionAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::ITEMPRESET_CREATE);
@@ -179,7 +179,7 @@ final class ItemPresetGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getCreatePrivateAction()
+    private function getCreatePrivateAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::ITEMPRESET_CREATE);
@@ -203,7 +203,7 @@ final class ItemPresetGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getCreateSessionTimeoutAction()
+    private function getCreateSessionTimeoutAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::ITEMPRESET_CREATE);
@@ -227,7 +227,7 @@ final class ItemPresetGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getCreateAccountPasswordAction()
+    private function getCreateAccountPasswordAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::ITEMPRESET_CREATE);
@@ -251,7 +251,7 @@ final class ItemPresetGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getEditAction()
+    private function getEditAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::ITEMPRESET_EDIT);
@@ -260,7 +260,10 @@ final class ItemPresetGrid extends GridBase
         $gridAction->setTitle(__('Edit Value'));
         $gridAction->setIcon($this->icons->getIconEdit());
         $gridAction->setOnClickFunction('appMgmt/show');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::ITEMPRESET_EDIT));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::ITEMPRESET_EDIT)
+        );
 
         return $gridAction;
     }
@@ -268,7 +271,7 @@ final class ItemPresetGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getDeleteAction()
+    private function getDeleteAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::ITEMPRESET_DELETE);
@@ -277,7 +280,10 @@ final class ItemPresetGrid extends GridBase
         $gridAction->setTitle(__('Delete Value'));
         $gridAction->setIcon($this->icons->getIconDelete());
         $gridAction->setOnClickFunction('appMgmt/delete');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::ITEMPRESET_DELETE));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::ITEMPRESET_DELETE)
+        );
 
         return $gridAction;
     }

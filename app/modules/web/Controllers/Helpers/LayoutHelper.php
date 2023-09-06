@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,25 +19,26 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Modules\Web\Controllers\Helpers;
 
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
-use SP\Bootstrap;
 use SP\Core\Acl\Acl;
 use SP\Core\Acl\ActionsInterface;
 use SP\Core\AppInfoInterface;
-use SP\Core\Crypt\CryptPKI;
+use SP\Core\Application;
+use SP\Core\Bootstrap\BootstrapBase;
+use SP\Core\Crypt\CryptPKIInterface;
 use SP\Core\Exceptions\SPException;
 use SP\Core\Language;
 use SP\Core\UI\ThemeInterface;
+use SP\Domain\Install\Services\InstallerService;
 use SP\Html\DataGrid\Action\DataGridAction;
+use SP\Http\RequestInterface;
 use SP\Http\Uri;
+use SP\Mvc\View\TemplateInterface;
 use SP\Plugin\PluginManager;
-use SP\Services\Install\Installer;
 use SP\Util\VersionUtil;
 
 /**
@@ -47,24 +48,38 @@ use SP\Util\VersionUtil;
  */
 final class LayoutHelper extends HelperBase
 {
-    /**
-     * @var  bool
-     */
-    protected $loggedIn;
-    /**
-     * @var ThemeInterface
-     */
-    protected $theme;
+    private ThemeInterface    $theme;
+    private CryptPKIInterface $cryptPKI;
+    private PluginManager     $pluginManager;
+    private bool              $loggedIn;
+
+    public function __construct(
+        Application $application,
+        TemplateInterface $template,
+        RequestInterface $request,
+        ThemeInterface $theme,
+        CryptPKIInterface $cryptPKI,
+        PluginManager $pluginManager
+    ) {
+        parent::__construct($application, $template, $request);
+
+        $this->theme = $theme;
+        $this->cryptPKI = $cryptPKI;
+        $this->pluginManager = $pluginManager;
+        $this->loggedIn = $this->context->isLoggedIn();
+
+        $this->view->assign('loggedIn', $this->loggedIn);
+    }
 
     /**
      * Sets a full layout page
      *
-     * @param string $page Page/view name
-     * @param Acl    $acl
+     * @param  string  $page  Page/view name
+     * @param  Acl|null  $acl
      *
      * @return LayoutHelper
      */
-    public function getFullLayout($page, Acl $acl = null)
+    public function getFullLayout(string $page, Acl $acl = null): LayoutHelper
     {
         $this->view->addTemplate('main', '_layouts');
         $this->view->assign('useFixedHeader', true);
@@ -85,10 +100,8 @@ final class LayoutHelper extends HelperBase
 
     /**
      * Establecer la variable de página de la vista
-     *
-     * @param $page
      */
-    public function setPage($page)
+    public function setPage(string $page): void
     {
         $this->view->assign('page', $page);
     }
@@ -96,33 +109,31 @@ final class LayoutHelper extends HelperBase
     /**
      * Inicializar las variables para la vista principal de la aplicación
      */
-    public function initBody()
+    public function initBody(): void
     {
-        $baseUrl = $this->configData->getApplicationUrl() ?: Bootstrap::$WEBURI;
+        $baseUrl = $this->configData->getApplicationUrl() ?? BootstrapBase::$WEBURI;
 
         $this->view->assign('isInstalled', $this->configData->isInstalled());
         $this->view->assign('app_name', AppInfoInterface::APP_NAME);
         $this->view->assign('app_desc', AppInfoInterface::APP_DESC);
         $this->view->assign('app_website_url', AppInfoInterface::APP_WEBSITE_URL);
         $this->view->assign('app_blog_url', AppInfoInterface::APP_BLOG_URL);
-        $this->view->assign('app_version', Installer::VERSION_TEXT);
-        $this->view->assign('logo_icon', $baseUrl . '/public/images/logo_icon.png');
-        $this->view->assign('logo_no_bg_color', $baseUrl . '/public/images/logo_full_nobg_outline_color.png');
-        $this->view->assign('logo_no_bg', $baseUrl . '/public/images/logo_full_nobg_outline.png');
+        $this->view->assign('app_version', InstallerService::VERSION_TEXT);
+        $this->view->assign('logo_icon', $baseUrl.'/public/images/logo_icon.png');
+        $this->view->assign('logo_no_bg_color', $baseUrl.'/public/images/logo_full_nobg_outline_color.png');
+        $this->view->assign('logo_no_bg', $baseUrl.'/public/images/logo_full_nobg_outline.png');
         $this->view->assign('httpsEnabled', $this->request->isHttps());
         $this->view->assign('homeRoute', Acl::getActionRoute(ActionsInterface::ACCOUNT));
 
         $this->loggedIn = $this->context->isLoggedIn();
 
-        $this->view->assign('sk', $this->view->get('sk') ?: $this->context->generateSecurityKey($this->configData->getPasswordSalt()));
         $this->view->assign('loggedIn', $this->loggedIn);
         $this->view->assign('lang', $this->loggedIn ? Language::$userLang : substr(Language::$globalLang, 0, 2));
         $this->view->assign('loadApp', $this->context->getAuthCompleted());
 
-
         try {
             // Cargar la clave pública en la sesión
-            $this->context->setPublicKey($this->dic->get(CryptPKI::class)->getPublicKey());
+            $this->context->setPublicKey($this->cryptPKI->getPublicKey());
         } catch (SPException $e) {
             processException($e);
         }
@@ -134,10 +145,10 @@ final class LayoutHelper extends HelperBase
     /**
      * Obtener los datos para la cabcera de la página
      */
-    protected function getResourcesLinks()
+    protected function getResourcesLinks(): void
     {
         $version = VersionUtil::getVersionStringNormalized();
-        $baseUrl = ($this->configData->getApplicationUrl() ?: Bootstrap::$WEBURI) . Bootstrap::$SUBURI;
+        $baseUrl = ($this->configData->getApplicationUrl() ?? BootstrapBase::$WEBURI).BootstrapBase::$SUBURI;
 
         $jsUri = new Uri($baseUrl);
         $jsUri->addParam('_r', 'resource/js');
@@ -145,8 +156,7 @@ final class LayoutHelper extends HelperBase
 
         $this->view->append('jsLinks', $jsUri->getUriSigned($this->configData->getPasswordSalt()));
 
-        $jsUri->resetParams()
-            ->addParam('g', 1);
+        $jsUri->resetParams()->addParam('g', 1);
 
         $this->view->append('jsLinks', $jsUri->getUriSigned($this->configData->getPasswordSalt()));
 
@@ -154,7 +164,7 @@ final class LayoutHelper extends HelperBase
 
         if (isset($themeInfo['js'])) {
             $jsUri->resetParams()
-                ->addParam('b', $this->theme->getThemePath() . DIRECTORY_SEPARATOR . 'js')
+                ->addParam('b', $this->theme->getThemePath().DIRECTORY_SEPARATOR.'js')
                 ->addParam('f', implode(',', $themeInfo['js']));
 
             $this->view->append('jsLinks', $jsUri->getUriSigned($this->configData->getPasswordSalt()));
@@ -162,43 +172,49 @@ final class LayoutHelper extends HelperBase
 
         $userPreferences = $this->context->getUserData()->getPreferences();
 
-        if ($this->loggedIn && $userPreferences->getUserId() > 0) {
+        if ($this->loggedIn
+            && $userPreferences
+            && $userPreferences->getUserId() > 0) {
             $resultsAsCards = $userPreferences->isResultsAsCards();
         } else {
             $resultsAsCards = $this->configData->isResultsAsCards();
         }
 
-        $cssUri = new Uri($baseUrl);
-        $cssUri->addParam('_r', 'resource/css');
-        $cssUri->addParam('_v', md5($version . $resultsAsCards));
+        $cssUri = (new Uri($baseUrl))
+            ->addParam('_r', 'resource/css')
+            ->addParam('_v', md5($version.$resultsAsCards));
 
         $this->view->append('cssLinks', $cssUri->getUriSigned($this->configData->getPasswordSalt()));
 
         if (isset($themeInfo['css'])) {
-            $themeInfo['css'][] = $resultsAsCards ? 'search-card.min.css' : 'search-grid.min.css';
+            $themeInfo['css'][] = $resultsAsCards
+                ? 'search-card.min.css'
+                : 'search-grid.min.css';
 
             if ($this->configData->isDokuwikiEnabled()) {
                 $themeInfo['css'][] = 'styles-wiki.min.css';
             }
 
             $cssUri->resetParams()
-                ->addParam('b', $this->theme->getThemePath() . DIRECTORY_SEPARATOR . 'css')
+                ->addParam('b', $this->theme->getThemePath().DIRECTORY_SEPARATOR.'css')
                 ->addParam('f', implode(',', $themeInfo['css']));
 
             $this->view->append('cssLinks', $cssUri->getUriSigned($this->configData->getPasswordSalt()));
         }
 
         // Cargar los recursos de los plugins
-        foreach ($this->dic->get(PluginManager::class)->getLoadedPlugins() as $plugin) {
+        $loadedPlugins = $this->pluginManager->getLoadedPlugins();
+
+        foreach ($loadedPlugins as $plugin) {
             $base = str_replace(APP_ROOT, '', $plugin->getBase());
-            $base .= DIRECTORY_SEPARATOR . 'public';
+            $base .= DIRECTORY_SEPARATOR.'public';
 
             $jsResources = $plugin->getJsResources();
             $cssResources = $plugin->getCssResources();
 
             if (count($jsResources) > 0) {
                 $jsUri->resetParams()
-                    ->addParam('b', $base . DIRECTORY_SEPARATOR . 'js')
+                    ->addParam('b', $base.DIRECTORY_SEPARATOR.'js')
                     ->addParam('f', implode(',', $jsResources));
 
                 $this->view->append('jsLinks', $jsUri->getUriSigned($this->configData->getPasswordSalt()));
@@ -206,7 +222,7 @@ final class LayoutHelper extends HelperBase
 
             if (count($cssResources) > 0) {
                 $cssUri->resetParams()
-                    ->addParam('b', $base . DIRECTORY_SEPARATOR . 'css')
+                    ->addParam('b', $base.DIRECTORY_SEPARATOR.'css')
                     ->addParam('f', implode(',', $cssResources));
 
                 $this->view->append('cssLinks', $cssUri->getUriSigned($this->configData->getPasswordSalt()));
@@ -217,7 +233,7 @@ final class LayoutHelper extends HelperBase
     /**
      * Establecer las cabeceras HTTP
      */
-    private function setResponseHeaders()
+    private function setResponseHeaders(): void
     {
         // UTF8 Headers
         header('Content-Type: text/html; charset=UTF-8');
@@ -230,7 +246,7 @@ final class LayoutHelper extends HelperBase
     /**
      * Obtener los datos para la mostrar la barra de sesión
      */
-    public function getSessionBar()
+    public function getSessionBar(): void
     {
         $userType = null;
 
@@ -253,9 +269,9 @@ final class LayoutHelper extends HelperBase
     /**
      * Obtener los datos para mostrar el menú de acciones
      *
-     * @param Acl $acl
+     * @param  Acl  $acl
      */
-    public function getMenu(Acl $acl)
+    public function getMenu(Acl $acl): void
     {
         $icons = $this->theme->getIcons();
         $actions = [];
@@ -266,8 +282,8 @@ final class LayoutHelper extends HelperBase
         $actionSearch->setIcon($icons->getIconSearch());
         $actionSearch->setData([
             'historyReset' => 1,
-            'view' => 'search',
-            'route' => Acl::getActionRoute(ActionsInterface::ACCOUNT)
+            'view'         => 'search',
+            'route'        => Acl::getActionRoute(ActionsInterface::ACCOUNT),
         ]);
 
         $actions[] = $actionSearch;
@@ -279,8 +295,8 @@ final class LayoutHelper extends HelperBase
             $actionNewAccount->setIcon($icons->getIconAdd());
             $actionNewAccount->setData([
                 'historyReset' => 0,
-                'view' => 'account',
-                'route' => Acl::getActionRoute(ActionsInterface::ACCOUNT_CREATE)
+                'view'         => 'account',
+                'route'        => Acl::getActionRoute(ActionsInterface::ACCOUNT_CREATE),
             ]);
 
             $actions[] = $actionNewAccount;
@@ -293,8 +309,8 @@ final class LayoutHelper extends HelperBase
             $actionAccessManager->setIcon($icons->getIconAccount());
             $actionAccessManager->setData([
                 'historyReset' => 0,
-                'view' => 'datatabs',
-                'route' => Acl::getActionRoute(ActionsInterface::ACCESS_MANAGE)
+                'view'         => 'datatabs',
+                'route'        => Acl::getActionRoute(ActionsInterface::ACCESS_MANAGE),
             ]);
 
             $actions[] = $actionAccessManager;
@@ -307,8 +323,8 @@ final class LayoutHelper extends HelperBase
             $actionItemManager->setIcon($icons->getIconGroup());
             $actionItemManager->setData([
                 'historyReset' => 0,
-                'view' => 'datatabs',
-                'route' => Acl::getActionRoute(ActionsInterface::ITEMS_MANAGE)
+                'view'         => 'datatabs',
+                'route'        => Acl::getActionRoute(ActionsInterface::ITEMS_MANAGE),
             ]);
 
             $actions[] = $actionItemManager;
@@ -321,8 +337,8 @@ final class LayoutHelper extends HelperBase
             $actionSecurityManager->setIcon($icons->getIconByName('security'));
             $actionSecurityManager->setData([
                 'historyReset' => 0,
-                'view' => 'datatabs',
-                'route' => Acl::getActionRoute(ActionsInterface::SECURITY_MANAGE)
+                'view'         => 'datatabs',
+                'route'        => Acl::getActionRoute(ActionsInterface::SECURITY_MANAGE),
             ]);
 
             $actions[] = $actionSecurityManager;
@@ -335,8 +351,8 @@ final class LayoutHelper extends HelperBase
             $actionPlugins->setIcon($icons->getIconByName('extension'));
             $actionPlugins->setData([
                 'historyReset' => 1,
-                'view' => 'plugin',
-                'route' => Acl::getActionRoute(ActionsInterface::PLUGIN)
+                'view'         => 'plugin',
+                'route'        => Acl::getActionRoute(ActionsInterface::PLUGIN),
             ]);
 
             $actions[] = $actionPlugins;
@@ -349,8 +365,8 @@ final class LayoutHelper extends HelperBase
             $actionConfigManager->setIcon($icons->getIconSettings());
             $actionConfigManager->setData([
                 'historyReset' => 1,
-                'view' => 'config',
-                'route' => Acl::getActionRoute(ActionsInterface::CONFIG)
+                'view'         => 'config',
+                'route'        => Acl::getActionRoute(ActionsInterface::CONFIG),
             ]);
 
             $actions[] = $actionConfigManager;
@@ -363,12 +379,12 @@ final class LayoutHelper extends HelperBase
     /**
      * Sets a full layout page
      *
-     * @param string $template
-     * @param string $page Page/view name
+     * @param  string  $template
+     * @param  string  $page  Page/view name
      *
      * @return LayoutHelper
      */
-    public function getPublicLayout($template, $page = '')
+    public function getPublicLayout(string $template, string $page = ''): LayoutHelper
     {
         $this->view->addTemplate('main', '_layouts');
         $this->view->addContentTemplate($template);
@@ -383,12 +399,12 @@ final class LayoutHelper extends HelperBase
     /**
      * Sets a custom layout page
      *
-     * @param string $template
-     * @param string $page Page/view name
+     * @param  string  $template
+     * @param  string  $page  Page/view name
      *
      * @return LayoutHelper
      */
-    public function getCustomLayout($template, $page = '')
+    public function getCustomLayout(string $template, string $page = ''): LayoutHelper
     {
         $this->view->addTemplate('main', '_layouts');
         $this->view->addContentTemplate($template);
@@ -397,18 +413,5 @@ final class LayoutHelper extends HelperBase
         $this->initBody();
 
         return $this;
-    }
-
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    protected function initialize()
-    {
-        $this->theme = $this->dic->get(ThemeInterface::class);
-
-        $this->loggedIn = $this->context->isLoggedIn();
-
-        $this->view->assign('loggedIn', $this->loggedIn);
     }
 }

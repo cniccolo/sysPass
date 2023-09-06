@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,17 +19,18 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Task;
 
 use PHPUnit\Framework\TestCase;
 use SP\Core\Context\ContextException;
-use SP\Services\Task\Task;
-use SP\Services\Task\TaskFactory;
-use SP\Services\Task\TaskService;
-use SP\Storage\File\FileException;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\Task\Services\Task;
+use SP\Domain\Task\Services\TaskFactory;
+use SP\Domain\Task\Services\TaskService;
+use SP\Infrastructure\File\FileException;
 use function SP\Tests\setupContext;
 
 /**
@@ -44,12 +45,13 @@ class TaskServiceTest extends TestCase
     /**
      * @throws FileException
      * @throws ContextException
+     * @throws ServiceException
      */
     public function testTrackStatus()
     {
         $this->markTestSkipped();
 
-        $task = TaskFactory::create(__FUNCTION__, Task::genTaskId(__FUNCTION__));
+        $task = TaskFactory::register(__FUNCTION__, Task::genTaskId(__FUNCTION__));
 
         $this->assertFileExists($task->getFileTask()->getFile());
 
@@ -97,8 +99,8 @@ class TaskServiceTest extends TestCase
             sleep(1);
         }
 
-        $this->assertFileNotExists($task->getFileTask()->getFile());
-        $this->assertFileNotExists($task->getFileOut()->getFile());
+        $this->assertFileDoesNotExist($task->getFileTask()->getFile());
+        $this->assertFileDoesNotExist($task->getFileOut()->getFile());
     }
 
     /**

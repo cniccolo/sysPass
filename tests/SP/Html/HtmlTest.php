@@ -4,7 +4,7 @@
  *
  * @author nuxsmin
  * @link https://syspass.org
- * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
+ * @copyright 2012-2023, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -24,24 +24,28 @@
 
 namespace SP\Tests\Html;
 
-use Faker\Factory;
-use PHPUnit\Framework\TestCase;
 use SP\Html\Html;
+use SP\Tests\UnitaryTestCase;
 
 /**
  * Class HtmlTest
+ *
+ * @group unitary
  */
-class HtmlTest extends TestCase
+class HtmlTest extends UnitaryTestCase
 {
-    private static $faker;
 
-    public static function setUpBeforeClass(): void
+    public static function urlProvider(): array
     {
-        parent::setUpBeforeClass();
-
-        self::$faker = Factory::create();
+        return [
+            ['https://foo.com/<script>alert("TEST");</script>'],
+            ['https://foo.com/><script>alert("TEST");</script>'],
+            ['https://foo.com/"><script>alert("TEST");</script>'],
+            ['https://foo.com/"%20onClick="alert(\'TEST\'")'],
+            ['https://foo.com/" onClick="alert(\'TEST\')"'],
+            ['mongodb+srv://cluster.foo.mongodb.net/bar'],
+        ];
     }
-
 
     public function testGetSafeUrlOk()
     {
@@ -57,17 +61,5 @@ class HtmlTest extends TestCase
     public function testGetSafeUrlEncoded(string $url)
     {
         $this->assertEquals(0, preg_match('/["<>\']+/', Html::getSafeUrl($url)));
-    }
-
-    private function urlProvider(): array
-    {
-        return [
-            ['https://foo.com/<script>alert("TEST");</script>'],
-            ['https://foo.com/><script>alert("TEST");</script>'],
-            ['https://foo.com/"><script>alert("TEST");</script>'],
-            ['https://foo.com/"%20onClick="alert(\'TEST\'")'],
-            ['https://foo.com/" onClick="alert(\'TEST\')"'],
-            ['mongodb+srv://cluster.foo.mongodb.net/bar'],
-        ];
     }
 }

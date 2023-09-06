@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Modules\Web\Forms;
@@ -35,21 +35,23 @@ use SP\DataModel\TagData;
  */
 final class TagForm extends FormBase implements FormInterface
 {
-    /**
-     * @var TagData
-     */
-    protected $tagData;
+    protected ?TagData $tagData = null;
 
     /**
      * Validar el formulario
      *
-     * @param $action
+     * @param  int  $action
+     * @param  int|null  $id
      *
-     * @return TagForm
+     * @return TagForm|FormInterface
      * @throws ValidationException
      */
-    public function validate($action)
+    public function validateFor(int $action, ?int $id = null): FormInterface
     {
+        if ($id !== null) {
+            $this->itemId = $id;
+        }
+
         switch ($action) {
             case ActionsInterface::TAG_CREATE:
             case ActionsInterface::TAG_EDIT:
@@ -66,7 +68,7 @@ final class TagForm extends FormBase implements FormInterface
      *
      * @return void
      */
-    protected function analyzeRequestData()
+    protected function analyzeRequestData(): void
     {
         $this->tagData = new TagData();
         $this->tagData->setId($this->itemId);
@@ -76,17 +78,14 @@ final class TagForm extends FormBase implements FormInterface
     /**
      * @throws ValidationException
      */
-    protected function checkCommon()
+    protected function checkCommon(): void
     {
         if (!$this->tagData->getName()) {
             throw new ValidationException(__u('A tag name is needed'));
         }
     }
 
-    /**
-     * @return TagData
-     */
-    public function getItemData()
+    public function getItemData(): ?TagData
     {
         return $this->tagData;
     }

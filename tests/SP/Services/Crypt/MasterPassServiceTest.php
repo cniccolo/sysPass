@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Crypt;
@@ -32,13 +32,11 @@ use SP\Core\Context\ContextException;
 use SP\Core\Crypt\Crypt;
 use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\Account\AccountService;
-use SP\Services\Crypt\MasterPassService;
-use SP\Services\Crypt\UpdateMasterPassRequest;
-use SP\Services\CustomField\CustomFieldService;
-use SP\Services\ServiceException;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Account\Services\AccountService;
+use SP\Domain\Crypt\Services\MasterPassService;
+use SP\Domain\Crypt\Services\UpdateMasterPassRequest;
+use SP\Domain\CustomField\Services\CustomFieldService;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use SP\Tests\Services\Account\AccountCryptServiceTest;
 use function SP\Tests\setupContext;
@@ -51,15 +49,15 @@ use function SP\Tests\setupContext;
 class MasterPassServiceTest extends DatabaseTestCase
 {
     /**
-     * @var CustomFieldService
+     * @var \SP\Domain\CustomField\Ports\CustomFieldServiceInterface
      */
     private static $customFieldService;
     /**
-     * @var AccountService
+     * @var \SP\Domain\Account\Ports\AccountServiceInterface
      */
     private static $accountService;
     /**
-     * @var MasterPassService
+     * @var \SP\Domain\Crypt\Ports\MasterPassServiceInterface
      */
     private static $service;
 
@@ -68,14 +66,11 @@ class MasterPassServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_accountCrypt.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$service = $dic->get(MasterPassService::class);
@@ -182,7 +177,7 @@ class MasterPassServiceTest extends DatabaseTestCase
 
     /**
      * @throws NoSuchItemException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testCheckUserUpdateMPass()
     {
@@ -192,7 +187,7 @@ class MasterPassServiceTest extends DatabaseTestCase
 
     /**
      * @throws NoSuchItemException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testCheckMasterPassword()
     {

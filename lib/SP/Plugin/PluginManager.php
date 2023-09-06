@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,26 +19,27 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Plugin;
 
 use Exception;
 use ReflectionClass;
-use SP\Bootstrap;
-use SP\Core\Context\ContextInterface;
+use SP\Core\Bootstrap\BootstrapBase;
 use SP\Core\Events\Event;
 use SP\Core\Events\EventDispatcher;
 use SP\Core\Events\EventMessage;
 use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
-use SP\Repositories\NoSuchItemException;
-use SP\Repositories\Plugin\PluginModel;
-use SP\Services\Install\Installer;
-use SP\Services\Plugin\PluginDataService;
-use SP\Services\Plugin\PluginService;
+use SP\Domain\Install\Services\InstallerService;
+use SP\Domain\Plugin\Ports\PluginDataServiceInterface;
+use SP\Domain\Plugin\Ports\PluginServiceInterface;
+use SP\Domain\Plugin\Services\PluginDataService;
+use SP\Domain\Plugin\Services\PluginService;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
+use SP\Infrastructure\Plugin\Repositories\PluginModel;
 use SP\Util\VersionUtil;
 
 /**
@@ -46,57 +47,33 @@ use SP\Util\VersionUtil;
  *
  * @package SP\Plugin
  */
-final class PluginManager
+class PluginManager
 {
-    /**
-     * @var array
-     */
-    private static $pluginsAvailable;
-    /**
-     * @var array Plugins habilitados
-     */
-    private $enabledPlugins;
+    private static ?array $pluginsAvailable;
+    private ?array        $enabledPlugins = null;
     /**
      * @var PluginInterface[] Plugins ya cargados
      */
-    private $loadedPlugins = [];
-    /**
-     * @var array Plugins deshabilitados
-     */
-    private $disabledPlugins = [];
-    /**
-     * @var PluginService
-     */
-    private $pluginService;
-    /**
-     * @var ContextInterface
-     */
-    private $context;
-    /**
-     * @var EventDispatcher
-     */
-    private $eventDispatcher;
-    /**
-     * @var PluginDataService
-     */
-    private $pluginDataService;
+    private array             $loadedPlugins = [];
+    private array             $disabledPlugins = [];
+    private PluginService     $pluginService;
+    private EventDispatcher   $eventDispatcher;
+    private PluginDataService $pluginDataService;
 
     /**
      * PluginManager constructor.
      *
-     * @param PluginService     $pluginService
-     * @param PluginDataService $pluginDataService
-     * @param ContextInterface  $context
-     * @param EventDispatcher   $eventDispatcher
+     * @param  \SP\Domain\Plugin\Ports\PluginServiceInterface  $pluginService
+     * @param  PluginDataServiceInterface  $pluginDataService
+     * @param  EventDispatcher  $eventDispatcher
      */
-    public function __construct(PluginService $pluginService,
-                                PluginDataService $pluginDataService,
-                                ContextInterface $context,
-                                EventDispatcher $eventDispatcher)
-    {
+    public function __construct(
+        PluginServiceInterface $pluginService,
+        PluginDataServiceInterface $pluginDataService,
+        EventDispatcher $eventDispatcher
+    ) {
         $this->pluginService = $pluginService;
         $this->pluginDataService = $pluginDataService;
-        $this->context = $context;
         $this->eventDispatcher = $eventDispatcher;
 
         self::$pluginsAvailable = self::getPlugins();
@@ -107,15 +84,16 @@ final class PluginManager
      *
      * @return array
      */
-    public static function getPlugins()
+    public static function getPlugins(): array
     {
-        $dir = dir(PLUGINS_PATH);
         $plugins = [];
 
-        if ($dir) {
+        if (is_dir(PLUGINS_PATH)
+            && ($dir = dir(PLUGINS_PATH))) {
+
             while (false !== ($entry = $dir->read())) {
-                $pluginDir = PLUGINS_PATH . DIRECTORY_SEPARATOR . $entry;
-                $pluginFile = $pluginDir . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'Plugin.php';
+                $pluginDir = PLUGINS_PATH.DS.$entry;
+                $pluginFile = $pluginDir.DS.'src'.DS.'lib'.DS.'Plugin.php';
 
                 if (strpos($entry, '.') === false
                     && is_dir($pluginDir)
@@ -123,7 +101,7 @@ final class PluginManager
                 ) {
                     logger(sprintf('Plugin found: %s', $pluginDir));
 
-                    $plugins[$entry] = require $pluginDir . DIRECTORY_SEPARATOR . 'base.php';
+                    $plugins[$entry] = require $pluginDir.DS.'base.php';
                 }
             }
 
@@ -136,12 +114,12 @@ final class PluginManager
     /**
      * Obtener la información de un plugin
      *
-     * @param string $name Nombre del plugin
-     * @param bool   $initialize
+     * @param  string  $name  Nombre del plugin
+     * @param  bool  $initialize
      *
      * @return PluginInterface
      */
-    public function getPlugin($name, bool $initialize = false)
+    public function getPlugin(string $name, bool $initialize = false): ?PluginInterface
     {
         if (isset(self::$pluginsAvailable[$name])) {
             $plugin = $this->loadPluginClass(
@@ -149,7 +127,7 @@ final class PluginManager
                 self::$pluginsAvailable[$name]['namespace']
             );
 
-            if ($initialize) {
+            if (null !== $plugin && $initialize) {
                 $this->initPlugin($plugin);
                 $plugin->onLoad();
             }
@@ -163,12 +141,12 @@ final class PluginManager
     /**
      * Cargar un plugin
      *
-     * @param string $name Nombre del plugin
-     * @param string $namespace
+     * @param  string  $name  Nombre del plugin
+     * @param  string  $namespace
      *
      * @return PluginInterface
      */
-    private function loadPluginClass(string $name, string $namespace)
+    private function loadPluginClass(string $name, string $namespace): ?PluginInterface
     {
         $pluginName = ucfirst($name);
 
@@ -177,21 +155,26 @@ final class PluginManager
         }
 
         try {
-            $class = $namespace . 'Plugin';
+            $class = $namespace.'Plugin';
             $reflectionClass = new ReflectionClass($class);
 
             /** @var PluginInterface $plugin */
             $plugin = $reflectionClass->newInstance(
-                Bootstrap::getContainer(),
+                BootstrapBase::getContainer(), // FIXME
                 new PluginOperation($this->pluginDataService, $pluginName)
             );
 
             // Do not load plugin's data if not compatible.
             // Just return the plugin instance before disabling it
-            if (self::checkCompatibility($plugin) === false) {
-                $this->eventDispatcher->notifyEvent('plugin.load.error',
-                    new Event($this, EventMessage::factory()
-                        ->addDescription(sprintf(__('Plugin version not compatible (%s)'), implode('.', $plugin->getVersion()))))
+            if ($this->checkCompatibility($plugin) === false) {
+                $this->eventDispatcher->notifyEvent(
+                    'plugin.load.error',
+                    new Event(
+                        $this, EventMessage::factory()
+                        ->addDescription(
+                            sprintf(__('Plugin version not compatible (%s)'), implode('.', $plugin->getVersion()))
+                        )
+                    )
                 );
 
                 $this->disabledPlugins[] = $pluginName;
@@ -201,11 +184,14 @@ final class PluginManager
         } catch (Exception $e) {
             processException($e);
 
-            $this->eventDispatcher->notifyEvent('exception',
-                new Event($e, EventMessage::factory()
+            $this->eventDispatcher->notifyEvent(
+                'exception',
+                new Event(
+                    $e, EventMessage::factory()
                     ->addDescription(sprintf(__('Unable to load the "%s" plugin'), $pluginName))
                     ->addDescription($e->getMessage())
-                    ->addDetail(__u('Plugin'), $pluginName))
+                    ->addDetail(__u('Plugin'), $pluginName)
+                )
             );
         }
 
@@ -213,24 +199,31 @@ final class PluginManager
     }
 
     /**
-     * @param PluginInterface $plugin
+     * @param  PluginInterface  $plugin
      *
      * @return bool
      * @throws ConstraintException
      * @throws NoSuchItemException
      * @throws QueryException
      */
-    public function checkCompatibility(PluginInterface $plugin)
+    public function checkCompatibility(PluginInterface $plugin): bool
     {
         $pluginVersion = implode('.', $plugin->getCompatibleVersion());
-        $appVersion = implode('.', array_slice(Installer::VERSION, 0, 2));
+        $appVersion = implode('.', array_slice(InstallerService::VERSION, 0, 2));
 
         if (version_compare($pluginVersion, $appVersion) === -1) {
-            $this->pluginService->toggleEnabledByName($plugin->getName(), false);
+            $this->pluginService->toggleEnabledByName(
+                $plugin->getName(),
+                false
+            );
 
-            $this->eventDispatcher->notifyEvent('edit.plugin.disable',
-                new Event($this, EventMessage::factory()
-                    ->addDetail(__u('Plugin disabled'), $plugin->getName()))
+            $this->eventDispatcher->notifyEvent(
+                'edit.plugin.disable',
+                new Event(
+                    $this,
+                    EventMessage::factory()
+                        ->addDetail(__u('Plugin disabled'), $plugin->getName())
+                )
             );
 
             return false;
@@ -240,11 +233,11 @@ final class PluginManager
     }
 
     /**
-     * @param PluginInterface $plugin
+     * @param  PluginInterface  $plugin
      *
      * @return bool
      */
-    private function initPlugin(PluginInterface $plugin)
+    private function initPlugin(PluginInterface $plugin): bool
     {
         try {
             $pluginModel = $this->pluginService->getByName($plugin->getName());
@@ -257,11 +250,14 @@ final class PluginManager
         } catch (Exception $e) {
             processException($e);
 
-            $this->eventDispatcher->notifyEvent('exception',
-                new Event($e, EventMessage::factory()
+            $this->eventDispatcher->notifyEvent(
+                'exception',
+                new Event(
+                    $e, EventMessage::factory()
                     ->addDescription(sprintf(__('Unable to load the "%s" plugin'), $plugin->getName()))
                     ->addDescription($e->getMessage())
-                    ->addDetail(__u('Plugin'), $plugin->getName()))
+                    ->addDetail(__u('Plugin'), $plugin->getName())
+                )
             );
         }
 
@@ -275,7 +271,7 @@ final class PluginManager
      * @throws QueryException
      * @throws SPException
      */
-    public function loadPlugins()
+    public function loadPlugins(): void
     {
         $available = array_keys(self::$pluginsAvailable);
         $processed = [];
@@ -292,9 +288,12 @@ final class PluginManager
                 if ($plugin->getAvailable() === 0) {
                     $this->pluginService->toggleAvailable($plugin->getId(), true);
 
-                    $this->eventDispatcher->notifyEvent('edit.plugin.available',
-                        new Event($this, EventMessage::factory()
-                            ->addDetail(__u('Plugin available'), $plugin->getName()))
+                    $this->eventDispatcher->notifyEvent(
+                        'edit.plugin.available',
+                        new Event(
+                            $this, EventMessage::factory()
+                            ->addDetail(__u('Plugin available'), $plugin->getName())
+                        )
                     );
 
                     $this->load($plugin->getName());
@@ -303,9 +302,12 @@ final class PluginManager
                 if ($plugin->getAvailable() === 1) {
                     $this->pluginService->toggleAvailable($plugin->getId(), false);
 
-                    $this->eventDispatcher->notifyEvent('edit.plugin.unavailable',
-                        new Event($this, EventMessage::factory()
-                            ->addDetail(__u('Plugin unavailable'), $plugin->getName()))
+                    $this->eventDispatcher->notifyEvent(
+                        'edit.plugin.unavailable',
+                        new Event(
+                            $this, EventMessage::factory()
+                            ->addDetail(__u('Plugin unavailable'), $plugin->getName())
+                        )
                     );
                 }
             }
@@ -322,9 +324,9 @@ final class PluginManager
     }
 
     /**
-     * @param string $pluginName
+     * @param  string  $pluginName
      */
-    private function load(string $pluginName)
+    private function load(string $pluginName): void
     {
         $plugin = $this->loadPluginClass(
             $pluginName,
@@ -336,9 +338,12 @@ final class PluginManager
         ) {
             logger(sprintf('Plugin loaded: %s', $pluginName));
 
-            $this->eventDispatcher->notifyEvent('plugin.load',
-                new Event($this, EventMessage::factory()
-                    ->addDetail(__u('Plugin loaded'), $pluginName))
+            $this->eventDispatcher->notifyEvent(
+                'plugin.load',
+                new Event(
+                    $this, EventMessage::factory()
+                    ->addDetail(__u('Plugin loaded'), $pluginName)
+                )
             );
 
             $this->loadedPlugins[$pluginName] = $plugin;
@@ -348,12 +353,12 @@ final class PluginManager
     }
 
     /**
-     * @param string $name
+     * @param  string  $name
      *
      * @throws ConstraintException
      * @throws QueryException
      */
-    private function registerPlugin(string $name)
+    private function registerPlugin(string $name): void
     {
         $pluginData = new PluginModel();
         $pluginData->setName($name);
@@ -361,19 +366,22 @@ final class PluginManager
 
         $this->pluginService->create($pluginData);
 
-        $this->eventDispatcher->notifyEvent('create.plugin',
-            new Event($this, EventMessage::factory()
+        $this->eventDispatcher->notifyEvent(
+            'create.plugin',
+            new Event(
+                $this, EventMessage::factory()
                 ->addDescription(__u('New Plugin'))
                 ->addDetail(__u('Name'), $name)
-            ));
+            )
+        );
 
         $this->disabledPlugins[] = $name;
     }
 
     /**
-     * @param string $version
+     * @param  string  $version
      */
-    public function upgradePlugins(string $version)
+    public function upgradePlugins(string $version): void
     {
         $available = array_keys(self::$pluginsAvailable);
 
@@ -383,16 +391,32 @@ final class PluginManager
                 self::$pluginsAvailable[$pluginName]['namespace']
             );
 
+            if (null === $plugin) {
+                $this->eventDispatcher->notifyEvent(
+                    'upgrade.plugin.process',
+                    new Event(
+                        $this, EventMessage::factory()
+                        ->addDescription(sprintf(__('Unable to upgrade the "%s" plugin'), $pluginName))
+                        ->addDetail(__u('Plugin'), $pluginName)
+                    )
+                );
+
+                continue;
+            }
+
             try {
                 $pluginModel = $this->pluginService->getByName($pluginName);
 
                 if ($pluginModel->getVersionLevel() === null
                     || VersionUtil::checkVersion($pluginModel->getVersionLevel(), $version)
                 ) {
-                    $this->eventDispatcher->notifyEvent('upgrade.plugin.process',
-                        new Event($this, EventMessage::factory()
+                    $this->eventDispatcher->notifyEvent(
+                        'upgrade.plugin.process',
+                        new Event(
+                            $this, EventMessage::factory()
                             ->addDescription(__u('Upgrading plugin'))
-                            ->addDetail(__u('Name'), $pluginName))
+                            ->addDetail(__u('Name'), $pluginName)
+                        )
                     );
 
                     $plugin->upgrade(
@@ -406,20 +430,26 @@ final class PluginManager
 
                     $this->pluginService->update($pluginModel);
 
-                    $this->eventDispatcher->notifyEvent('upgrade.plugin.process',
-                        new Event($this, EventMessage::factory()
+                    $this->eventDispatcher->notifyEvent(
+                        'upgrade.plugin.process',
+                        new Event(
+                            $this, EventMessage::factory()
                             ->addDescription(__u('Plugin upgraded'))
-                            ->addDetail(__u('Name'), $pluginName))
+                            ->addDetail(__u('Name'), $pluginName)
+                        )
                     );
                 }
             } catch (Exception $e) {
                 processException($e);
 
-                $this->eventDispatcher->notifyEvent('exception',
-                    new Event($e, EventMessage::factory()
+                $this->eventDispatcher->notifyEvent(
+                    'exception',
+                    new Event(
+                        $e, EventMessage::factory()
                         ->addDescription(sprintf(__('Unable to upgrade the "%s" plugin'), $pluginName))
                         ->addDescription($e->getMessage())
-                        ->addDetail(__u('Plugin'), $pluginName))
+                        ->addDetail(__u('Plugin'), $pluginName)
+                    )
                 );
             }
         }
@@ -430,15 +460,18 @@ final class PluginManager
      *
      * @throws SPException
      */
-    public function checkEnabledPlugins()
+    public function checkEnabledPlugins(): void
     {
         foreach ($this->getEnabledPlugins() as $plugin) {
-            if (!in_array($plugin, $this->loadedPlugins)) {
+            if (!in_array($plugin, $this->loadedPlugins, true)) {
                 $this->pluginService->toggleAvailableByName($plugin, false);
 
-                $this->eventDispatcher->notifyEvent('edit.plugin.unavailable',
-                    new Event($this, EventMessage::factory()
-                        ->addDetail(__u('Plugin disabled'), $plugin->getName()))
+                $this->eventDispatcher->notifyEvent(
+                    'edit.plugin.unavailable',
+                    new Event(
+                        $this, EventMessage::factory()
+                        ->addDetail(__u('Plugin disabled'), $plugin->getName())
+                    )
                 );
             }
         }
@@ -451,7 +484,7 @@ final class PluginManager
      * @throws ConstraintException
      * @throws QueryException
      */
-    public function getEnabledPlugins()
+    public function getEnabledPlugins(): ?array
     {
         if ($this->enabledPlugins !== null) {
             return $this->enabledPlugins;
@@ -471,7 +504,7 @@ final class PluginManager
      *
      * @return PluginInterface[]
      */
-    public function getLoadedPlugins()
+    public function getLoadedPlugins(): array
     {
         return $this->loadedPlugins;
     }
@@ -481,7 +514,7 @@ final class PluginManager
      *
      * @return string[]
      */
-    public function getDisabledPlugins()
+    public function getDisabledPlugins(): array
     {
         return $this->disabledPlugins;
     }

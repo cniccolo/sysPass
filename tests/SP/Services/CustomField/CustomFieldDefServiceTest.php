@@ -32,10 +32,9 @@ use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
 use SP\DataModel\CustomFieldDefinitionData;
 use SP\DataModel\ItemSearchData;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\CustomField\CustomFieldDefService;
-use SP\Services\ServiceException;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\CustomField\Services\CustomFieldDefService;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -56,21 +55,18 @@ class CustomFieldDefServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_customField.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$service = $dic->get(CustomFieldDefService::class);
     }
 
     /**
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testDelete()
     {
@@ -84,8 +80,8 @@ class CustomFieldDefServiceTest extends DatabaseTestCase
 
         self::$service->delete(1);
 
-        $this->assertEquals(2, $this->conn->getRowCount('CustomFieldDefinition'));
-        $this->assertEquals(3, $this->conn->getRowCount('CustomFieldData'));
+        $this->assertEquals(2, self::getRowCount('CustomFieldDefinition'));
+        $this->assertEquals(3, self::getRowCount('CustomFieldData'));
     }
 
     /**
@@ -139,8 +135,8 @@ class CustomFieldDefServiceTest extends DatabaseTestCase
 
         self::$service->deleteByIdBatch([1, 2]);
 
-        $this->assertEquals(2, $this->conn->getRowCount('CustomFieldDefinition'));
-        $this->assertEquals(3, $this->conn->getRowCount('CustomFieldData'));
+        $this->assertEquals(2, self::getRowCount('CustomFieldDefinition'));
+        $this->assertEquals(3, self::getRowCount('CustomFieldData'));
     }
 
     /**
@@ -162,7 +158,7 @@ class CustomFieldDefServiceTest extends DatabaseTestCase
 
         $this->assertEquals(4, self::$service->create($data));
 
-        $this->assertEquals(4, $this->conn->getRowCount('CustomFieldDefinition'));
+        $this->assertEquals(4, self::getRowCount('CustomFieldDefinition'));
 
         $this->assertEquals($data, self::$service->getById(4));
 
@@ -196,7 +192,7 @@ class CustomFieldDefServiceTest extends DatabaseTestCase
      * @throws ConstraintException
      * @throws NoSuchItemException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testUpdate()
     {
@@ -216,7 +212,7 @@ class CustomFieldDefServiceTest extends DatabaseTestCase
 
         $this->assertEquals($data, $dataUpdated);
 
-        $this->assertEquals(1, $this->conn->getRowCount('CustomFieldData'));
+        $this->assertEquals(1, self::getRowCount('CustomFieldData'));
 
         $data->setTypeId(100);
 

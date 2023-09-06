@@ -24,15 +24,13 @@
 
 /**
  * @var ThemeIcons $icons
- * @var ConfigData $configData
- * @var callable   $_getvar
- * @var Template   $this
+ * @var \SP\Domain\Config\Ports\ConfigDataInterface $configData
+ * @var callable $_getvar
+ * @var \SP\Mvc\View\TemplateInterface $this
  */
 
-use SP\Config\ConfigData;
 use SP\Core\UI\ThemeIcons;
 use SP\Mvc\View\Components\SelectItem;
-use SP\Mvc\View\Template;
 
 ?>
 
@@ -223,7 +221,7 @@ use SP\Mvc\View\Template;
                                for="check_notices_enabled">
                             <input type="checkbox" id="check_notices_enabled"
                                    class="mdl-switch__input"
-                                   name="check_notices_enabled" <?php echo $configData->isChecknotices() ? 'checked' : ''; ?>/>
+                                   name="check_notices_enabled" <?php echo $configData->isCheckNotices() ? 'checked' : ''; ?>/>
                         </label>
                     </div>
 

@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Modules\Web\Controllers\Helpers\Grid;
@@ -34,7 +34,7 @@ use SP\Html\DataGrid\DataGridData;
 use SP\Html\DataGrid\DataGridInterface;
 use SP\Html\DataGrid\DataGridTab;
 use SP\Html\DataGrid\Layout\DataGridHeader;
-use SP\Storage\Database\QueryResult;
+use SP\Infrastructure\Database\QueryResult;
 
 /**
  * Class UserProfileGrid
@@ -43,10 +43,7 @@ use SP\Storage\Database\QueryResult;
  */
 final class UserProfileGrid extends GridBase
 {
-    /**
-     * @var QueryResult
-     */
-    private $queryResult;
+    private ?QueryResult $queryResult = null;
 
     /**
      * @param QueryResult $queryResult
@@ -73,7 +70,8 @@ final class UserProfileGrid extends GridBase
                 ->setName(__('Delete Selected'))
                 ->setTitle(__('Delete Selected'))
                 ->setIsSelection(true),
-            true);
+            true
+        );
 
         $grid->setTime(round(getElapsedTime($this->queryTimeStart), 5));
 
@@ -126,7 +124,7 @@ final class UserProfileGrid extends GridBase
     /**
      * @return DataGridActionSearch
      */
-    private function getSearchAction()
+    private function getSearchAction(): DataGridActionSearch
     {
         // Grid Actions
         $gridActionSearch = new DataGridActionSearch();
@@ -135,7 +133,10 @@ final class UserProfileGrid extends GridBase
         $gridActionSearch->setName('frmSearchProfile');
         $gridActionSearch->setTitle(__('Search for Profile'));
         $gridActionSearch->setOnSubmitFunction('appMgmt/search');
-        $gridActionSearch->addData('action-route', Acl::getActionRoute(ActionsInterface::PROFILE_SEARCH));
+        $gridActionSearch->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::PROFILE_SEARCH)
+        );
 
         return $gridActionSearch;
     }
@@ -143,7 +144,7 @@ final class UserProfileGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getCreateAction()
+    private function getCreateAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::PROFILE_CREATE);
@@ -153,7 +154,10 @@ final class UserProfileGrid extends GridBase
         $gridAction->setIcon($this->icons->getIconAdd());
         $gridAction->setSkip(true);
         $gridAction->setOnClickFunction('appMgmt/show');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::PROFILE_CREATE));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::PROFILE_CREATE)
+        );
 
         return $gridAction;
     }
@@ -161,7 +165,7 @@ final class UserProfileGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getViewAction()
+    private function getViewAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::PROFILE_VIEW);
@@ -170,7 +174,10 @@ final class UserProfileGrid extends GridBase
         $gridAction->setTitle(__('View Profile Details'));
         $gridAction->setIcon($this->icons->getIconView());
         $gridAction->setOnClickFunction('appMgmt/show');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::PROFILE_VIEW));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::PROFILE_VIEW)
+        );
 
         return $gridAction;
     }
@@ -178,7 +185,7 @@ final class UserProfileGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getEditAction()
+    private function getEditAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::PROFILE_EDIT);
@@ -187,7 +194,10 @@ final class UserProfileGrid extends GridBase
         $gridAction->setTitle(__('Edit Profile'));
         $gridAction->setIcon($this->icons->getIconEdit());
         $gridAction->setOnClickFunction('appMgmt/show');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::PROFILE_EDIT));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::PROFILE_EDIT)
+        );
 
         return $gridAction;
     }
@@ -195,7 +205,7 @@ final class UserProfileGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getDeleteAction()
+    private function getDeleteAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::PROFILE_DELETE);
@@ -204,7 +214,10 @@ final class UserProfileGrid extends GridBase
         $gridAction->setTitle(__('Delete Profile'));
         $gridAction->setIcon($this->icons->getIconDelete());
         $gridAction->setOnClickFunction('appMgmt/delete');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::PROFILE_DELETE));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::PROFILE_DELETE)
+        );
 
         return $gridAction;
     }

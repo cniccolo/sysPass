@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Plugin;
@@ -32,11 +32,9 @@ use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\NoSuchPropertyException;
 use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
-use SP\Repositories\NoSuchItemException;
-use SP\Repositories\Plugin\PluginDataModel;
-use SP\Services\Plugin\PluginDataService;
-use SP\Services\ServiceException;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Plugin\Ports\PluginDataServiceInterface;
+use SP\Domain\Plugin\Services\PluginDataService;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -48,7 +46,7 @@ use function SP\Tests\setupContext;
 class PluginDataServiceTest extends DatabaseTestCase
 {
     /**
-     * @var PluginDataService
+     * @var PluginDataServiceInterface
      */
     private static $service;
 
@@ -57,14 +55,11 @@ class PluginDataServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_plugin.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
         self::$service = $dic->get(PluginDataService::class);
@@ -76,11 +71,11 @@ class PluginDataServiceTest extends DatabaseTestCase
      * @throws CryptoException
      * @throws NoSuchPropertyException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testUpdate()
     {
-        $data = new PluginDataModel();
+        $data = new \SP\Infrastructure\Plugin\Repositories\PluginDataModel();
         $data->setItemId(1);
         $data->setName('Authenticator');
         $data->setData('data_updated');
@@ -91,7 +86,7 @@ class PluginDataServiceTest extends DatabaseTestCase
 
         $this->assertEquals('data_updated', $itemData->getData());
 
-        $data = new PluginDataModel();
+        $data = new \SP\Infrastructure\Plugin\Repositories\PluginDataModel();
         $data->setItemId(0);
         $data->setName('Authenticator');
         $data->setData('data_updated');
@@ -104,11 +99,11 @@ class PluginDataServiceTest extends DatabaseTestCase
      * @throws CryptoException
      * @throws NoSuchPropertyException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testUpdateUnkown()
     {
-        $data = new PluginDataModel();
+        $data = new \SP\Infrastructure\Plugin\Repositories\PluginDataModel();
         $data->setItemId(2);
         $data->setName('Test');
         $data->setData('data');
@@ -143,11 +138,11 @@ class PluginDataServiceTest extends DatabaseTestCase
     {
         self::$service->delete('Authenticator');
 
-        $this->assertTableRowCount('PluginData', 2);
+        $this->assertEquals(2, self::getRowCount('PluginData'));
 
         self::$service->delete('DokuWiki');
 
-        $this->assertTableRowCount('PluginData', 1);
+        $this->assertEquals(1, self::getRowCount('PluginData'));
     }
 
     /**
@@ -168,11 +163,11 @@ class PluginDataServiceTest extends DatabaseTestCase
      * @throws CryptoException
      * @throws NoSuchPropertyException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testCreate()
     {
-        $data = new PluginDataModel();
+        $data = new \SP\Infrastructure\Plugin\Repositories\PluginDataModel();
         $data->setItemId(4);
         $data->setName('Authenticator');
         $data->setData('data');
@@ -194,13 +189,13 @@ class PluginDataServiceTest extends DatabaseTestCase
      * @throws CryptoException
      * @throws NoSuchPropertyException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testCreateUnknown()
     {
         $this->expectException(ConstraintException::class);
 
-        $data = new PluginDataModel();
+        $data = new \SP\Infrastructure\Plugin\Repositories\PluginDataModel();
         $data->setItemId(4);
         $data->setName('Test');
         $data->setData('data');
@@ -214,13 +209,13 @@ class PluginDataServiceTest extends DatabaseTestCase
      * @throws CryptoException
      * @throws NoSuchPropertyException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testGetByItemId()
     {
         $data = self::$service->getByItemId('Authenticator', 1);
 
-        $this->assertInstanceOf(PluginDataModel::class, $data);
+        $this->assertInstanceOf(\SP\Infrastructure\Plugin\Repositories\PluginDataModel::class, $data);
         $this->assertEquals(1, $data->getItemId());
         $this->assertEquals('Authenticator', $data->getName());
         $this->assertEquals('data_item1', $data->getData());
@@ -232,7 +227,7 @@ class PluginDataServiceTest extends DatabaseTestCase
      * @throws CryptoException
      * @throws NoSuchPropertyException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testGetByItemIdUnkown()
     {
@@ -251,12 +246,12 @@ class PluginDataServiceTest extends DatabaseTestCase
         $result = self::$service->getById('Authenticator');
 
         $this->assertCount(2, $result);
-        $this->assertInstanceOf(PluginDataModel::class, $result[0]);
+        $this->assertInstanceOf(\SP\Infrastructure\Plugin\Repositories\PluginDataModel::class, $result[0]);
         $this->assertEquals(1, $result[0]->getItemId());
         $this->assertEquals('Authenticator', $result[0]->getName());
         $this->assertEquals('data_item1', $result[0]->getData());
 
-        $this->assertInstanceOf(PluginDataModel::class, $result[1]);
+        $this->assertInstanceOf(\SP\Infrastructure\Plugin\Repositories\PluginDataModel::class, $result[1]);
         $this->assertEquals(2, $result[1]->getItemId());
         $this->assertEquals('Authenticator', $result[1]->getName());
         $this->assertEquals('plugin_data', $result[1]->getData());

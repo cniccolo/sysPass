@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Repositories;
@@ -33,9 +33,9 @@ use SP\Core\Exceptions\SPException;
 use SP\DataModel\CategoryData;
 use SP\DataModel\ItemSearchData;
 use SP\DataModel\TagData;
-use SP\Repositories\DuplicatedItemException;
-use SP\Repositories\Tag\TagRepository;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Tag\Ports\TagRepositoryInterface;
+use SP\Infrastructure\Common\Repositories\DuplicatedItemException;
+use SP\Infrastructure\Tag\Repositories\TagRepository;
 use SP\Tests\DatabaseTestCase;
 use stdClass;
 use function SP\Tests\setupContext;
@@ -50,7 +50,7 @@ use function SP\Tests\setupContext;
 class TagRepositoryTest extends DatabaseTestCase
 {
     /**
-     * @var TagRepository
+     * @var TagRepositoryInterface
      */
     private static $repository;
 
@@ -59,14 +59,11 @@ class TagRepositoryTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(TagRepository::class);
@@ -131,7 +128,7 @@ class TagRepositoryTest extends DatabaseTestCase
      */
     public function testGetAll()
     {
-        $count = $this->conn->getRowCount('Tag');
+        $count = self::getRowCount('Tag');
 
         $results = self::$repository->getAll();
 
@@ -187,7 +184,7 @@ class TagRepositoryTest extends DatabaseTestCase
         $this->assertEquals(0, self::$repository->deleteByIdBatch([4]));
         $this->assertEquals(3, self::$repository->deleteByIdBatch([1, 2, 3]));
 
-        $this->assertEquals(0, $this->conn->getRowCount('Tag'));
+        $this->assertEquals(0, self::getRowCount('Tag'));
     }
 
     /**
@@ -198,7 +195,7 @@ class TagRepositoryTest extends DatabaseTestCase
      */
     public function testCreate()
     {
-        $countBefore = $this->conn->getRowCount('Tag');
+        $countBefore = self::getRowCount('Tag');
 
         $tagData = new TagData();
         $tagData->name = 'Core';
@@ -210,7 +207,7 @@ class TagRepositoryTest extends DatabaseTestCase
 
         $this->assertEquals($tagData->name, $data->getName());
 
-        $countAfter = $this->conn->getRowCount('Tag');
+        $countAfter = self::getRowCount('Tag');
 
         $this->assertEquals($countBefore + 1, $countAfter);
     }
@@ -223,11 +220,11 @@ class TagRepositoryTest extends DatabaseTestCase
      */
     public function testDelete()
     {
-        $countBefore = $this->conn->getRowCount('Tag');
+        $countBefore = self::getRowCount('Tag');
 
         $this->assertEquals(1, self::$repository->delete(3));
 
-        $countAfter = $this->conn->getRowCount('Tag');
+        $countAfter = self::getRowCount('Tag');
 
         $this->assertEquals($countBefore - 1, $countAfter);
 
@@ -243,9 +240,9 @@ class TagRepositoryTest extends DatabaseTestCase
      */
     public function testGetByIdBatch()
     {
-        $this->assertCount(3, self::$repository->getByIdBatch([1, 2, 3]));
-        $this->assertCount(3, self::$repository->getByIdBatch([1, 2, 3, 4, 5]));
-        $this->assertCount(0, self::$repository->getByIdBatch([]));
+        $this->assertCount(3, self::$repository->getByIdBatch([1, 2, 3])->getDataAsArray());
+        $this->assertCount(3, self::$repository->getByIdBatch([1, 2, 3, 4, 5])->getDataAsArray());
+        $this->assertCount(0, self::$repository->getByIdBatch([])->getDataAsArray());
     }
 
     /**

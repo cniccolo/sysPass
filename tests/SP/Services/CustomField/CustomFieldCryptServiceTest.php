@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\CustomField;
@@ -31,11 +31,10 @@ use SP\Core\Context\ContextException;
 use SP\Core\Crypt\Crypt;
 use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
-use SP\Services\Crypt\UpdateMasterPassRequest;
-use SP\Services\CustomField\CustomFieldCryptService;
-use SP\Services\CustomField\CustomFieldService;
-use SP\Services\ServiceException;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Crypt\Services\UpdateMasterPassRequest;
+use SP\Domain\CustomField\Ports\CustomFieldCryptServiceInterface;
+use SP\Domain\CustomField\Services\CustomFieldCryptService;
+use SP\Domain\CustomField\Services\CustomFieldService;
 use SP\Tests\DatabaseTestCase;
 use SP\Tests\Services\Account\AccountCryptServiceTest;
 use function SP\Tests\setupContext;
@@ -48,11 +47,11 @@ use function SP\Tests\setupContext;
 class CustomFieldCryptServiceTest extends DatabaseTestCase
 {
     /**
-     * @var CustomFieldService
+     * @var \SP\Domain\CustomField\Ports\CustomFieldServiceInterface
      */
     private static $customFieldService;
     /**
-     * @var CustomFieldCryptService
+     * @var \SP\Domain\CustomField\Ports\CustomFieldCryptServiceInterface
      */
     private static $service;
 
@@ -61,14 +60,11 @@ class CustomFieldCryptServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_accountCrypt.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$service = $dic->get(CustomFieldCryptService::class);
@@ -78,7 +74,7 @@ class CustomFieldCryptServiceTest extends DatabaseTestCase
     /**
      * @throws ConstraintException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      * @throws CryptoException
      */
     public function testUpdateMasterPassword()

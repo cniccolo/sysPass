@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Modules\Web\Controllers\Helpers\Grid;
@@ -34,7 +34,7 @@ use SP\Html\DataGrid\DataGridData;
 use SP\Html\DataGrid\DataGridInterface;
 use SP\Html\DataGrid\DataGridTab;
 use SP\Html\DataGrid\Layout\DataGridHeader;
-use SP\Storage\Database\QueryResult;
+use SP\Infrastructure\Database\QueryResult;
 
 /**
  * Class UserGrid
@@ -43,10 +43,7 @@ use SP\Storage\Database\QueryResult;
  */
 final class UserGrid extends GridBase
 {
-    /**
-     * @var QueryResult
-     */
-    private $queryResult;
+    private ?QueryResult $queryResult = null;
 
     /**
      * @param QueryResult $queryResult
@@ -74,7 +71,8 @@ final class UserGrid extends GridBase
                 ->setName(__('Delete Selected'))
                 ->setTitle(__('Delete Selected'))
                 ->setIsSelection(true),
-            true);
+            true
+        );
 
         $grid->setTime(round(getElapsedTime($this->queryTimeStart), 5));
 
@@ -126,10 +124,22 @@ final class UserGrid extends GridBase
         $gridData->addDataRowSource('login');
         $gridData->addDataRowSource('userProfileName');
         $gridData->addDataRowSource('userGroupName');
-        $gridData->addDataRowSourceWithIcon('isAdminApp', $this->icons->getIconAppAdmin());
-        $gridData->addDataRowSourceWithIcon('isAdminAcc', $this->icons->getIconAccAdmin());
-        $gridData->addDataRowSourceWithIcon('isLdap', $this->icons->getIconLdapUser());
-        $gridData->addDataRowSourceWithIcon('isDisabled', $this->icons->getIconDisabled());
+        $gridData->addDataRowSourceWithIcon(
+            'isAdminApp',
+            $this->icons->getIconAppAdmin()
+        );
+        $gridData->addDataRowSourceWithIcon(
+            'isAdminAcc',
+            $this->icons->getIconAccAdmin()
+        );
+        $gridData->addDataRowSourceWithIcon(
+            'isLdap',
+            $this->icons->getIconLdapUser()
+        );
+        $gridData->addDataRowSourceWithIcon(
+            'isDisabled',
+            $this->icons->getIconDisabled()
+        );
         $gridData->setData($this->queryResult);
 
         return $gridData;
@@ -138,7 +148,7 @@ final class UserGrid extends GridBase
     /**
      * @return DataGridActionSearch
      */
-    private function getSearchAction()
+    private function getSearchAction(): DataGridActionSearch
     {
         // Grid Actions
         $gridActionSearch = new DataGridActionSearch();
@@ -147,7 +157,10 @@ final class UserGrid extends GridBase
         $gridActionSearch->setName('frmSearchUser');
         $gridActionSearch->setTitle(__('Search for User'));
         $gridActionSearch->setOnSubmitFunction('appMgmt/search');
-        $gridActionSearch->addData('action-route', Acl::getActionRoute(ActionsInterface::USER_SEARCH));
+        $gridActionSearch->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::USER_SEARCH)
+        );
 
         return $gridActionSearch;
     }
@@ -155,7 +168,7 @@ final class UserGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getCreateAction()
+    private function getCreateAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::USER_CREATE);
@@ -165,7 +178,10 @@ final class UserGrid extends GridBase
         $gridAction->setIcon($this->icons->getIconAdd());
         $gridAction->setSkip(true);
         $gridAction->setOnClickFunction('appMgmt/show');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::USER_CREATE));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::USER_CREATE)
+        );
 
         return $gridAction;
     }
@@ -173,41 +189,7 @@ final class UserGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getEditAction()
-    {
-        $gridAction = new DataGridAction();
-        $gridAction->setId(ActionsInterface::USER_EDIT);
-        $gridAction->setType(DataGridActionType::EDIT_ITEM);
-        $gridAction->setName(__('Edit User'));
-        $gridAction->setTitle(__('Edit User'));
-        $gridAction->setIcon($this->icons->getIconEdit());
-        $gridAction->setOnClickFunction('appMgmt/show');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::USER_EDIT));
-
-        return $gridAction;
-    }
-
-    /**
-     * @return DataGridAction
-     */
-    private function getDeleteAction()
-    {
-        $gridAction = new DataGridAction();
-        $gridAction->setId(ActionsInterface::USER_DELETE);
-        $gridAction->setType(DataGridActionType::DELETE_ITEM);
-        $gridAction->setName(__('Delete User'));
-        $gridAction->setTitle(__('Delete User'));
-        $gridAction->setIcon($this->icons->getIconDelete());
-        $gridAction->setOnClickFunction('appMgmt/delete');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::USER_DELETE));
-
-        return $gridAction;
-    }
-
-    /**
-     * @return DataGridAction
-     */
-    private function getViewAction()
+    private function getViewAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::USER_VIEW);
@@ -216,7 +198,10 @@ final class UserGrid extends GridBase
         $gridAction->setTitle(__('View User Details'));
         $gridAction->setIcon($this->icons->getIconView());
         $gridAction->setOnClickFunction('appMgmt/show');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::USER_VIEW));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::USER_VIEW)
+        );
 
         return $gridAction;
     }
@@ -224,7 +209,27 @@ final class UserGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getEditPassAction()
+    private function getEditAction(): DataGridAction
+    {
+        $gridAction = new DataGridAction();
+        $gridAction->setId(ActionsInterface::USER_EDIT);
+        $gridAction->setType(DataGridActionType::EDIT_ITEM);
+        $gridAction->setName(__('Edit User'));
+        $gridAction->setTitle(__('Edit User'));
+        $gridAction->setIcon($this->icons->getIconEdit());
+        $gridAction->setOnClickFunction('appMgmt/show');
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::USER_EDIT)
+        );
+
+        return $gridAction;
+    }
+
+    /**
+     * @return DataGridAction
+     */
+    private function getEditPassAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::USER_EDIT_PASS);
@@ -234,7 +239,30 @@ final class UserGrid extends GridBase
         $gridAction->setIcon($this->icons->getIconEditPass());
         $gridAction->setOnClickFunction('appMgmt/show');
         $gridAction->setFilterRowSource('isLdap');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::USER_EDIT_PASS));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::USER_EDIT_PASS)
+        );
+
+        return $gridAction;
+    }
+
+    /**
+     * @return DataGridAction
+     */
+    private function getDeleteAction(): DataGridAction
+    {
+        $gridAction = new DataGridAction();
+        $gridAction->setId(ActionsInterface::USER_DELETE);
+        $gridAction->setType(DataGridActionType::DELETE_ITEM);
+        $gridAction->setName(__('Delete User'));
+        $gridAction->setTitle(__('Delete User'));
+        $gridAction->setIcon($this->icons->getIconDelete());
+        $gridAction->setOnClickFunction('appMgmt/delete');
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::USER_DELETE)
+        );
 
         return $gridAction;
     }

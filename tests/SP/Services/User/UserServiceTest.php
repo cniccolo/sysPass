@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,15 +19,14 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace SP\Tests\SP\Services\User;
+namespace SP\Tests\Services\User;
 
 use Defuse\Crypto\Exception\CryptoException;
 use DI\DependencyException;
 use DI\NotFoundException;
-use SP\Config\ConfigData;
 use SP\Core\Context\ContextException;
 use SP\Core\Crypt\Hash;
 use SP\Core\Exceptions\ConstraintException;
@@ -36,12 +35,12 @@ use SP\Core\Exceptions\SPException;
 use SP\DataModel\ItemSearchData;
 use SP\DataModel\UserData;
 use SP\DataModel\UserPreferencesData;
-use SP\Repositories\DuplicatedItemException;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\ServiceException;
-use SP\Services\User\UserLoginRequest;
-use SP\Services\User\UserService;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\Config\Ports\ConfigDataInterface;
+use SP\Domain\User\Services\UserLoginRequest;
+use SP\Domain\User\Services\UserService;
+use SP\Infrastructure\Common\Repositories\DuplicatedItemException;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use stdClass;
 use function SP\Tests\setupContext;
@@ -49,14 +48,14 @@ use function SP\Tests\setupContext;
 /**
  * Class UserServiceTest
  *
- * @package SP\Tests\SP\Services\User
+ * @package SP\Tests\SP\Domain\User\Services
  */
 class UserServiceTest extends DatabaseTestCase
 {
-    const CURRENT_MASTERPASS = '12345678900';
+    private const CURRENT_MASTERPASS = '12345678900';
 
     /**
-     * @var ConfigData
+     * @var \SP\Domain\Config\Ports\ConfigDataInterface
      */
     private static $configData;
 
@@ -71,19 +70,16 @@ class UserServiceTest extends DatabaseTestCase
      * @throws DependencyException
      * @throws SPException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_user.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
         self::$service = $dic->get(UserService::class);
 
-        self::$configData = $dic->get(ConfigData::class);
+        self::$configData = $dic->get(ConfigDataInterface::class);
     }
 
     /**
@@ -94,7 +90,7 @@ class UserServiceTest extends DatabaseTestCase
     {
         $data = self::$service->getAllBasic();
 
-        $this->assertCount(4, $data);
+        $this->assertCount(5, $data);
         $this->assertInstanceOf(UserData::class, $data[0]);
         $this->assertEquals('admin', $data[0]->getLogin());
     }
@@ -121,7 +117,7 @@ class UserServiceTest extends DatabaseTestCase
 
         $result = self::$service->createOnLogin($data);
 
-        $this->assertEquals(5, $result);
+        $this->assertEquals(6, $result);
 
         /** @var UserData $resultData */
         $resultData = self::$service->getById($result);
@@ -139,11 +135,11 @@ class UserServiceTest extends DatabaseTestCase
         $data->setLogin('test_ldap');
         $data->setEmail('test_ldap@email.com');
         $data->setPassword('test123ldap');
-        $data->setIsLdap(1);
+        $data->setIsLdap(true);
 
         $result = self::$service->createOnLogin($data);
 
-        $this->assertEquals(6, $result);
+        $this->assertEquals(7, $result);
 
         /** @var UserData $resultData */
         $resultData = self::$service->getById($result);
@@ -162,7 +158,7 @@ class UserServiceTest extends DatabaseTestCase
      * @throws QueryException
      * @throws SPException
      * @throws DuplicatedItemException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testUpdate()
     {
@@ -203,7 +199,7 @@ class UserServiceTest extends DatabaseTestCase
      * @throws QueryException
      * @throws SPException
      * @throws DuplicatedItemException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testUpdateDuplicatedLogin()
     {
@@ -231,7 +227,7 @@ class UserServiceTest extends DatabaseTestCase
      * @throws QueryException
      * @throws SPException
      * @throws DuplicatedItemException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testUpdateDuplicatedEmail()
     {
@@ -259,7 +255,7 @@ class UserServiceTest extends DatabaseTestCase
      * @throws QueryException
      * @throws SPException
      * @throws DuplicatedItemException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testUpdateUnknown()
     {
@@ -302,7 +298,7 @@ class UserServiceTest extends DatabaseTestCase
     /**
      * @throws ConstraintException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      * @throws SPException
      */
     public function testUpdatePass()
@@ -358,7 +354,7 @@ class UserServiceTest extends DatabaseTestCase
      */
     public function testDeleteByIdBatch()
     {
-        $this->assertEquals(2, self::$service->deleteByIdBatch([3, 4]));
+        $this->assertEquals(2, self::$service->deleteByIdBatch([4, 5]));
 
         $this->expectException(ConstraintException::class);
 
@@ -655,9 +651,9 @@ class UserServiceTest extends DatabaseTestCase
      */
     public function testDelete()
     {
-        self::$service->delete(3);
+        self::$service->delete(4);
 
-        $this->assertEquals(3, $this->conn->getRowCount('User'));
+        $this->assertEquals(4, self::getRowCount('User'));
     }
 
     /**
@@ -694,7 +690,7 @@ class UserServiceTest extends DatabaseTestCase
         $data = new UserLoginRequest();
         $data->setName('prueba');
         $data->setEmail('prueba@syspass.org');
-        $data->setIsLdap(1);
+        $data->setIsLdap(true);
         $data->setLogin('demo');
         $data->setPassword('test123');
 

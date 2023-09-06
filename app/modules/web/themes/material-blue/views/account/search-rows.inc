@@ -23,22 +23,21 @@
  */
 
 /**
- * @var ThemeIcons         $icons
- * @var callable           $_getvar
- * @var ConfigData         $configData
- * @var AccountSearchItem  $account
- * @var DataGridTab        $data
- * @var DataGridActionBase $actionMenu
- * @var DataGridActionBase $action
- * @var AccountSearchItem  $accountSearchItem
+ * @var ThemeIcons                     $icons
+ * @var callable                       $_getvar
+ * @var \SP\Domain\Config\Ports\ConfigDataInterface $configData
+ * @var AccountSearchItem              $account
+ * @var DataGridTab                    $data
+ * @var DataGridActionBase             $actionMenu
+ * @var DataGridActionBase             $action
+ * @var AccountSearchItem              $accountSearchItem
  */
 
-use SP\Config\ConfigData;
 use SP\Core\Acl\ActionsInterface;
 use SP\Core\UI\ThemeIcons;
+use SP\Domain\Account\Services\AccountSearchItem;
 use SP\Html\DataGrid\Action\DataGridActionBase;
 use SP\Html\DataGrid\DataGridTab;
-use SP\Services\Account\AccountSearchItem;
 use SP\Util\DateUtil;
 
 if (!isset($data)) {
@@ -53,7 +52,7 @@ $favoriteRouteOff = $_getvar('favoriteRouteOff');
 <div id="data-search">
     <?php foreach ($data->getData()->getData() as $index => $accountSearchItem):
         if ($index === 'count'): continue; endif;
-        $accountSearchData = $accountSearchItem->getAccountSearchVData();
+        $accountSearchData = $accountSearchItem->getAccountSearchView();
         ?>
 
         <div class="account-label round shadow">
@@ -293,6 +292,7 @@ $favoriteRouteOff = $_getvar('favoriteRouteOff');
                                 <i class="btn-action material-icons fg-green100"
                                    title="<?php echo __('View at Wiki'); ?>"
                                    data-action-route="<?php echo ActionsInterface::WIKI_VIEW; ?>"
+                                   data-pagename="<?php echo htmlspecialchars($accountSearchData->getName(), ENT_QUOTES); ?>"
                                    data-pagename="<?php echo htmlspecialchars(
                                        $accountSearchData->getName(),
                                        ENT_QUOTES

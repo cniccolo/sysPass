@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Html\Assets;
@@ -35,80 +35,72 @@ abstract class IconBase implements IconInterface
 {
     /**
      * El nombre del icono o imagen a utilizar
-     *
-     * @var string
      */
-    protected $icon = '';
+    protected string $icon;
 
     /**
      * Título del icono
-     *
-     * @var string
      */
-    protected $title = '';
+    protected ?string $title = null;
     /**
      * Clases CSS del icono
-     *
-     * @var array
      */
-    protected $class = [];
+    protected ?array $class = null;
 
-    /**
-     * @return string
-     */
-    public function getTitle()
+    public function __construct(
+        string  $icon,
+        ?string $class = null,
+        ?string $title = null
+    )
     {
-        return __($this->title);
+        $this->setIcon($icon);
+        $this->setClass($class);
+        $this->setTitle($title);
     }
 
-    /**
-     * @param $title
-     *
-     * @return $this
-     */
-    public function setTitle($title)
+    public function getTitle(): ?string
+    {
+        if ($this->title) {
+            return __($this->title);
+        }
+
+        return null;
+    }
+
+    public function setTitle(?string $title): IconBase
     {
         $this->title = $title;
 
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getClass()
+    public function getClass(): ?string
     {
-        return implode(' ', $this->class);
+        if ($this->class) {
+            return implode(' ', $this->class);
+        }
+
+        return null;
     }
 
-    /**
-     * @param $class
-     *
-     * @return $this
-     */
-    public function setClass($class)
+    public function setClass(?string $class): IconBase
     {
-        $this->class[] = $class;
+        if ($class) {
+            $this->class[] = $class;
+        }
 
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getIcon()
+    public function getIcon(): string
     {
         return $this->icon;
     }
 
-    /**
-     * @param $icon
-     *
-     * @return $this
-     */
-    public function setIcon($icon)
+    public function setIcon(string $icon): IconBase
     {
         $this->icon = $icon;
+
         return $this;
     }
 }

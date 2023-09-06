@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Export;
@@ -28,12 +28,12 @@ use Defuse\Crypto\Exception\CryptoException;
 use DI\DependencyException;
 use DI\NotFoundException;
 use SP\Core\Context\ContextException;
-use SP\Services\Export\VerifyResult;
-use SP\Services\Export\XmlExportService;
-use SP\Services\Export\XmlVerifyService;
-use SP\Services\ServiceException;
-use SP\Storage\Database\DatabaseConnectionData;
-use SP\Storage\File\FileException;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\Export\Ports\XmlVerifyServiceInterface;
+use SP\Domain\Export\Services\VerifyResult;
+use SP\Domain\Export\Services\XmlExportService;
+use SP\Domain\Export\Services\XmlVerifyService;
+use SP\Infrastructure\File\FileException;
 use SP\Tests\DatabaseTestCase;
 use SP\Util\PasswordUtil;
 use function SP\Tests\setupContext;
@@ -46,11 +46,11 @@ use function SP\Tests\setupContext;
 class XmlExportServiceTest extends DatabaseTestCase
 {
     /**
-     * @var XmlExportService
+     * @var \SP\Domain\Export\Ports\XmlExportServiceInterface
      */
     private static $xmlExportService;
     /**
-     * @var XmlVerifyService
+     * @var XmlVerifyServiceInterface
      */
     private static $xmlVerifyService;
 
@@ -59,22 +59,20 @@ class XmlExportServiceTest extends DatabaseTestCase
      * @throws NotFoundException
      * @throws ContextException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         array_map('unlink', glob(TMP_PATH . DIRECTORY_SEPARATOR . '*.xml'));
 
         $dic = setupContext();
 
-        self::$dataset = 'syspass_import.xml';
+        self::$loadFixtures = true;
 
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
         self::$xmlExportService = $dic->get(XmlExportService::class);
         self::$xmlVerifyService = $dic->get(XmlVerifyService::class);
     }
 
     /**
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      * @throws FileException
      */
     public function testDoExportWithoutPassword()
@@ -91,7 +89,7 @@ class XmlExportServiceTest extends DatabaseTestCase
      *
      * @param $file
      *
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      * @throws FileException
      */
     private function verifyExportWithoutPassword($file)
@@ -115,15 +113,15 @@ class XmlExportServiceTest extends DatabaseTestCase
         $this->assertArrayHasKey('Category', $nodes);
         $this->assertArrayHasKey('Client', $nodes);
         $this->assertArrayHasKey('Tag', $nodes);
-        $this->assertEquals(2, $nodes['Account']);
+        $this->assertEquals(4, $nodes['Account']);
         $this->assertEquals(3, $nodes['Category']);
-        $this->assertEquals(3, $nodes['Client']);
+        $this->assertEquals(4, $nodes['Client']);
         $this->assertEquals(3, $nodes['Tag']);
     }
 
     /**
      * @throws CryptoException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      * @throws FileException
      */
     public function testDoExportWithPassword()
@@ -142,7 +140,7 @@ class XmlExportServiceTest extends DatabaseTestCase
      * @param $password
      *
      * @throws CryptoException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      * @throws FileException
      */
     private function verifyExportWithPassword($file, $password)

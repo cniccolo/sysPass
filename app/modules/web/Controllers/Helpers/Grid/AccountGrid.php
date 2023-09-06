@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Modules\Web\Controllers\Helpers\Grid;
@@ -34,7 +34,7 @@ use SP\Html\DataGrid\DataGridData;
 use SP\Html\DataGrid\DataGridInterface;
 use SP\Html\DataGrid\DataGridTab;
 use SP\Html\DataGrid\Layout\DataGridHeader;
-use SP\Storage\Database\QueryResult;
+use SP\Infrastructure\Database\QueryResult;
 
 /**
  * Class AccountGrid
@@ -43,10 +43,7 @@ use SP\Storage\Database\QueryResult;
  */
 final class AccountGrid extends GridBase
 {
-    /**
-     * @var QueryResult
-     */
-    private $queryResult;
+    private ?QueryResult $queryResult = null;
 
     /**
      * @param QueryResult $queryResult
@@ -140,7 +137,7 @@ final class AccountGrid extends GridBase
     /**
      * @return DataGridActionSearch
      */
-    private function getSearchAction()
+    private function getSearchAction(): DataGridActionSearch
     {
         $gridActionSearch = new DataGridActionSearch();
         $gridActionSearch->setId(ActionsInterface::ACCOUNTMGR_SEARCH);
@@ -148,7 +145,10 @@ final class AccountGrid extends GridBase
         $gridActionSearch->setName('frmSearchAccount');
         $gridActionSearch->setTitle(__('Search for Account'));
         $gridActionSearch->setOnSubmitFunction('appMgmt/search');
-        $gridActionSearch->addData('action-route', Acl::getActionRoute(ActionsInterface::ACCOUNTMGR_SEARCH));
+        $gridActionSearch->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::ACCOUNTMGR_SEARCH)
+        );
 
         return $gridActionSearch;
     }
@@ -156,7 +156,7 @@ final class AccountGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    public function getViewAction()
+    public function getViewAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::ACCOUNT_VIEW);
@@ -165,7 +165,10 @@ final class AccountGrid extends GridBase
         $gridAction->setTitle(__('Account Details'));
         $gridAction->setIcon($this->icons->getIconView());
         $gridAction->setOnClickFunction(Acl::getActionRoute(ActionsInterface::ACCOUNT_VIEW));
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::ACCOUNT_VIEW));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::ACCOUNT_VIEW)
+        );
 
         return $gridAction;
     }
@@ -173,7 +176,7 @@ final class AccountGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getDeleteAction()
+    private function getDeleteAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::ACCOUNTMGR_DELETE);
@@ -182,7 +185,10 @@ final class AccountGrid extends GridBase
         $gridAction->setTitle(__('Remove Account'));
         $gridAction->setIcon($this->icons->getIconDelete());
         $gridAction->setOnClickFunction('appMgmt/delete');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::ACCOUNTMGR_DELETE));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::ACCOUNTMGR_DELETE)
+        );
 
         return $gridAction;
     }
@@ -190,7 +196,7 @@ final class AccountGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    public function getBulkEditAction()
+    public function getBulkEditAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::ACCOUNTMGR_BULK_EDIT);
@@ -199,7 +205,10 @@ final class AccountGrid extends GridBase
         $gridAction->setTitle(__('Bulk Update'));
         $gridAction->setIcon($this->icons->getIconEdit());
         $gridAction->setOnClickFunction('appMgmt/show');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::ACCOUNTMGR_BULK_EDIT));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::ACCOUNTMGR_BULK_EDIT)
+        );
 
         return $gridAction;
     }

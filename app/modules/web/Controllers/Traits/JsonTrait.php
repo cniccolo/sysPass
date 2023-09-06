@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Modules\Web\Controllers\Traits;
@@ -33,56 +33,55 @@ use SP\Http\JsonResponse;
 /**
  * Trait JsonTrait
  *
- * @package SP\Modules\Web\Controllers\Traits
  * @property SessionContext $session
+ * @property \Klein\Klein $router
  */
 trait JsonTrait
 {
     /**
      * Returns JSON response
      *
-     * @param int        $status      Status code
-     * @param string     $description Untranslated description string
-     * @param array|null $messages    Untranslated massages array of strings
+     * @param  int  $status  Status code
+     * @param  string  $description  Untranslated description string
+     * @param  array|null  $messages  Untranslated massages array of strings
      *
      * @return bool
+     * @throws \SP\Core\Exceptions\SPException
      */
-    protected function returnJsonResponse($status, $description, array $messages = null)
+    protected function returnJsonResponse(int $status, string $description, ?array $messages = null): bool
     {
         $jsonResponse = new JsonResponse();
         $jsonResponse->setStatus($status);
         $jsonResponse->setDescription($description);
 
-        if (property_exists($this, 'session')) {
-            $jsonResponse->setCsrf($this->session->getSecurityKey());
-        }
-
         if (null !== $messages) {
             $jsonResponse->setMessages($messages);
         }
 
-        return Json::fromDic()->returnJson($jsonResponse);
+        return Json::factory($this->router->response())->returnJson($jsonResponse);
     }
 
     /**
      * Returns JSON response
      *
-     * @param mixed  $data
-     * @param int    $status      Status code
-     * @param string $description Untranslated description string
-     * @param array  $messages
+     * @param  mixed  $data
+     * @param  int  $status  Status code
+     * @param  string|null  $description  Untranslated description string
+     * @param  array|null  $messages
      *
      * @return bool
+     * @throws \SP\Core\Exceptions\SPException
      */
-    protected function returnJsonResponseData($data, $status = JsonResponse::JSON_SUCCESS, $description = null, array $messages = null)
+    protected function returnJsonResponseData(
+        $data,
+        int $status = JsonResponse::JSON_SUCCESS,
+        ?string $description = null,
+        ?array $messages = null
+    ): bool
     {
         $jsonResponse = new JsonResponse();
         $jsonResponse->setStatus($status);
         $jsonResponse->setData($data);
-
-        if (isset($this->session)) {
-            $jsonResponse->setCsrf($this->session->getSecurityKey());
-        }
 
         if (null !== $description) {
             $jsonResponse->setDescription($description);
@@ -92,18 +91,19 @@ trait JsonTrait
             $jsonResponse->setMessages($messages);
         }
 
-        return Json::fromDic()->returnJson($jsonResponse);
+        return Json::factory($this->router->response())->returnJson($jsonResponse);
     }
 
     /**
      * Returns JSON response
      *
-     * @param Exception $exception
-     * @param int       $status Status code
+     * @param  \Exception  $exception
+     * @param  int  $status
      *
      * @return bool
+     * @throws \SP\Core\Exceptions\SPException
      */
-    protected function returnJsonResponseException(Exception $exception, $status = JsonResponse::JSON_ERROR)
+    protected function returnJsonResponseException(Exception $exception, int $status = JsonResponse::JSON_ERROR): bool
     {
         $jsonResponse = new JsonResponse();
         $jsonResponse->setStatus($status);
@@ -113,10 +113,6 @@ trait JsonTrait
             $jsonResponse->setMessages([$exception->getHint()]);
         }
 
-        if (isset($this->session)) {
-            $jsonResponse->setCsrf($this->session->getSecurityKey());
-        }
-
-        return Json::fromDic()->returnJson($jsonResponse);
+        return Json::factory($this->router->response())->returnJson($jsonResponse);
     }
 }

@@ -23,17 +23,16 @@
  */
 
 /**
- * @var callable       $_getvar
- * @var ThemeIcons     $icons
- * @var AccountExtData $accountData
- * @var AccountAcl     $accountAcl
- * @var ConfigData     $configData
+ * @var callable                       $_getvar
+ * @var ThemeIcons                     $icons
+ * @var AccountExtData                 $accountData
+ * @var AccountAcl                     $accountAcl
+ * @var \SP\Domain\Config\Ports\ConfigDataInterface $configData
  */
 
-use SP\Config\ConfigData;
 use SP\Core\UI\ThemeIcons;
 use SP\DataModel\AccountExtData;
-use SP\Services\Account\AccountAcl;
+use SP\Domain\Account\Services\AccountAcl;
 
 /** @var AccountExtData $accountData */
 $accountData = $_getvar('accountData');
@@ -154,7 +153,6 @@ $accountAcl = $_getvar('accountAcl');
             <?php endif; ?>
         </table>
 
-        <input type="hidden" name="sk" value="<?php echo $sk; ?>">
         <input type="hidden" name="isAjax" value="1">
 
         <div class="item-actions">

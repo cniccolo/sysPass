@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Track;
@@ -32,11 +32,10 @@ use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\InvalidArgumentException;
 use SP\Core\Exceptions\QueryException;
 use SP\DataModel\TrackData;
-use SP\Repositories\NoSuchItemException;
-use SP\Repositories\Track\TrackRequest;
-use SP\Services\ServiceException;
-use SP\Services\Track\TrackService;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\Security\Services\TrackService;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
+use SP\Infrastructure\Security\Repositories\TrackRequest;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -48,7 +47,7 @@ use function SP\Tests\setupContext;
 class TrackServiceTest extends DatabaseTestCase
 {
     /**
-     * @var TrackService
+     * @var \SP\Domain\Security\Ports\TrackServiceInterface
      */
     private static $service;
 
@@ -57,14 +56,11 @@ class TrackServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_track.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
         self::$service = $dic->get(TrackService::class);
@@ -79,7 +75,7 @@ class TrackServiceTest extends DatabaseTestCase
     {
         self::$service->delete(1);
 
-        $this->assertEquals(5, $this->conn->getRowCount('Track'));
+        $this->assertEquals(5, self::getRowCount('Track'));
 
         $this->expectException(NoSuchItemException::class);
 
@@ -91,15 +87,12 @@ class TrackServiceTest extends DatabaseTestCase
      * @throws ConstraintException
      * @throws InvalidArgumentException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testAdd()
     {
-        $data = new TrackRequest();
+        $data = new TrackRequest(time(), __METHOD__, 1);
         $data->setTrackIp('192.168.0.1');
-        $data->userId = 1;
-        $data->time = time();
-        $data->source = __METHOD__;
 
         $this->assertEquals(7, self::$service->add($data));
 
@@ -120,10 +113,7 @@ class TrackServiceTest extends DatabaseTestCase
      */
     public function testAddNoAddress()
     {
-        $data = new TrackRequest();
-        $data->userId = 1;
-        $data->time = time();
-        $data->source = __METHOD__;
+        $data = new TrackRequest(time(), __METHOD__, 1);
 
         $this->expectException(ServiceException::class);
 
@@ -193,10 +183,8 @@ class TrackServiceTest extends DatabaseTestCase
      */
     public function testGetTracksForClientFromTime()
     {
-        $data = new TrackRequest();
+        $data = new TrackRequest(1529272367, 'login');
         $data->setTrackIp('172.22.0.1');
-        $data->time = 1529272367;
-        $data->source = 'login';
 
         $this->assertEquals(3, self::$service->getTracksForClientFromTime($data));
 

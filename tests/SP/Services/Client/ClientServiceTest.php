@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Client;
@@ -34,12 +34,11 @@ use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
 use SP\DataModel\ClientData;
 use SP\DataModel\ItemSearchData;
-use SP\Repositories\DuplicatedItemException;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\Client\ClientService;
-use SP\Services\ServiceException;
-use SP\Services\User\UserLoginResponse;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Client\Services\ClientService;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\User\Services\UserLoginResponse;
+use SP\Infrastructure\Common\Repositories\DuplicatedItemException;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -55,7 +54,7 @@ class ClientServiceTest extends DatabaseTestCase
      */
     private static $setupUser;
     /**
-     * @var ClientService
+     * @var \SP\Domain\Client\Ports\ClientServiceInterface
      */
     private static $service;
 
@@ -64,14 +63,11 @@ class ClientServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
         self::$service = $dic->get(ClientService::class);
@@ -118,20 +114,23 @@ class ClientServiceTest extends DatabaseTestCase
      */
     public function testGetAllBasic()
     {
-        $count = $this->conn->getRowCount('Client');
+        $count = self::getRowCount('Client');
 
         $results = self::$service->getAllBasic();
 
         $this->assertCount($count, $results);
 
         $this->assertInstanceOf(ClientData::class, $results[0]);
-        $this->assertEquals('Apple', $results[0]->getName());
+        $this->assertEquals('Amazon', $results[0]->getName());
 
         $this->assertInstanceOf(ClientData::class, $results[1]);
-        $this->assertEquals('Google', $results[1]->getName());
+        $this->assertEquals('Apple', $results[1]->getName());
 
         $this->assertInstanceOf(ClientData::class, $results[2]);
-        $this->assertEquals('Microsoft', $results[2]->getName());
+        $this->assertEquals('Google', $results[2]->getName());
+
+        $this->assertInstanceOf(ClientData::class, $results[3]);
+        $this->assertEquals('Microsoft', $results[3]->getName());
     }
 
     /**
@@ -162,7 +161,7 @@ class ClientServiceTest extends DatabaseTestCase
      */
     public function testGetAllForUserAdmin()
     {
-        $this->assertCount(3, self::$service->getAllForUser());
+        $this->assertCount(4, self::$service->getAllForUser());
     }
 
     /**
@@ -176,7 +175,7 @@ class ClientServiceTest extends DatabaseTestCase
 
         self::$setupUser->call($this, $userData);
 
-        $this->assertCount(1, self::$service->getAllForUser());
+        $this->assertCount(2, self::$service->getAllForUser());
     }
 
     /**
@@ -200,9 +199,9 @@ class ClientServiceTest extends DatabaseTestCase
         $this->assertEquals($data->name, $result->getName());
         $this->assertEquals($data->isGlobal, $result->getIsGlobal());
 
-        $countAfter = $this->conn->getRowCount('Client');
+        $countAfter = self::getRowCount('Client');
 
-        $this->assertEquals(4, $countAfter);
+        $this->assertEquals(5, $countAfter);
 
         $this->expectException(DuplicatedItemException::class);
 
@@ -216,11 +215,11 @@ class ClientServiceTest extends DatabaseTestCase
      */
     public function testDeleteByIdBatch()
     {
-        $countBefore = $this->conn->getRowCount('Client');
+        $countBefore = self::getRowCount('Client');
 
-        self::$service->deleteByIdBatch([3]);
+        self::$service->deleteByIdBatch([4]);
 
-        $countAfter = $this->conn->getRowCount('Client');
+        $countAfter = self::getRowCount('Client');
 
         $this->assertEquals($countBefore - 1, $countAfter);
 
@@ -259,7 +258,7 @@ class ClientServiceTest extends DatabaseTestCase
 
         $this->expectException(NoSuchItemException::class);
 
-        self::$service->getByName('Amazon');
+        self::$service->getByName('Spotify');
     }
 
     /**
@@ -267,11 +266,11 @@ class ClientServiceTest extends DatabaseTestCase
      */
     public function testDelete()
     {
-        $countBefore = $this->conn->getRowCount('Client');
+        $countBefore = self::getRowCount('Client');
 
-        self::$service->delete(3);
+        self::$service->delete(4);
 
-        $countAfter = $this->conn->getRowCount('Client');
+        $countAfter = self::getRowCount('Client');
 
         $this->assertEquals($countBefore - 1, $countAfter);
 

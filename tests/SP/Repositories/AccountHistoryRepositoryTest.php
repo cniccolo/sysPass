@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Repositories;
@@ -31,12 +31,12 @@ use SP\Core\Context\ContextException;
 use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
-use SP\DataModel\AccountHistoryData;
-use SP\DataModel\Dto\AccountHistoryCreateDto;
 use SP\DataModel\ItemSearchData;
-use SP\Repositories\Account\AccountHistoryRepository;
-use SP\Services\Account\AccountPasswordRequest;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Account\Dtos\AccountHistoryCreateDto;
+use SP\Domain\Account\Dtos\AccountPasswordRequest;
+use SP\Domain\Account\Models\AccountHistory;
+use SP\Domain\Account\Ports\AccountHistoryRepositoryInterface;
+use SP\Infrastructure\Account\Repositories\AccountHistoryRepository;
 use SP\Tests\DatabaseTestCase;
 use SP\Util\PasswordUtil;
 use function SP\Tests\setupContext;
@@ -49,7 +49,7 @@ use function SP\Tests\setupContext;
 class AccountHistoryRepositoryTest extends DatabaseTestCase
 {
     /**
-     * @var AccountHistoryRepository
+     * @var AccountHistoryRepositoryInterface
      */
     private static $repository;
 
@@ -58,14 +58,11 @@ class AccountHistoryRepositoryTest extends DatabaseTestCase
      * @throws NotFoundException
      * @throws ContextException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_accountHistory.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(AccountHistoryRepository::class);
@@ -81,7 +78,7 @@ class AccountHistoryRepositoryTest extends DatabaseTestCase
         $this->assertEquals(1, self::$repository->delete(3));
         $this->assertEquals(1, self::$repository->delete(4));
 
-        $this->assertEquals(3, $this->conn->getRowCount('AccountHistory'));
+        $this->assertEquals(3, self::getRowCount('AccountHistory'));
     }
 
     /**
@@ -160,7 +157,7 @@ class AccountHistoryRepositoryTest extends DatabaseTestCase
         $result = self::$repository->create(new AccountHistoryCreateDto(10, true, false, PasswordUtil::generateRandomBytes()));
         $this->assertEquals(0, $result);
 
-        $this->assertEquals(7, $this->conn->getRowCount('AccountHistory'));
+        $this->assertEquals(7, self::getRowCount('AccountHistory'));
     }
 
     /**
@@ -195,7 +192,7 @@ class AccountHistoryRepositoryTest extends DatabaseTestCase
         $this->assertEquals(3, self::$repository->deleteByIdBatch([1, 3, 4, 5]));
         $this->assertEquals(0, self::$repository->deleteByIdBatch([]));
 
-        $this->assertEquals(2, $this->conn->getRowCount('AccountHistory'));
+        $this->assertEquals(2, self::getRowCount('AccountHistory'));
     }
 
     /**
@@ -204,11 +201,11 @@ class AccountHistoryRepositoryTest extends DatabaseTestCase
     public function testGetById()
     {
         $result = self::$repository->getById(3);
-        /** @var AccountHistoryData $data */
+        /** @var AccountHistory $data */
         $data = $result->getData();
 
         $this->assertEquals(1, $result->getNumRows());
-        $this->assertInstanceOf(AccountHistoryData::class, $data);
+        $this->assertInstanceOf(AccountHistory::class, $data);
         $this->assertEquals(3, $data->getId());
         $this->assertEquals('2018-06-06 22:20:29', $data->getDateEdit());
         $this->assertEquals('2018-06-05 22:49:34', $data->getDateAdd());
@@ -236,7 +233,7 @@ class AccountHistoryRepositoryTest extends DatabaseTestCase
         $this->assertEquals(1, self::$repository->updatePassword($request));
 
         $result = self::$repository->getById(3);
-        /** @var AccountHistoryData $data */
+        /** @var AccountHistory $data */
         $data = $result->getData();
 
         $this->assertEquals($request->pass, $data->getPass());
@@ -258,6 +255,6 @@ class AccountHistoryRepositoryTest extends DatabaseTestCase
 
         $this->assertEquals(0, self::$repository->deleteByAccountIdBatch([]));
 
-        $this->assertEquals(1, $this->conn->getRowCount('AccountHistory'));
+        $this->assertEquals(1, self::getRowCount('AccountHistory'));
     }
 }

@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,10 +19,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\DataModel;
+
+use SP\Domain\Common\Adapters\DataModelInterface;
+use SP\Domain\Common\Models\Model;
 
 defined('APP_ROOT') || die();
 
@@ -31,94 +34,56 @@ defined('APP_ROOT') || die();
  *
  * @package SP\DataModel
  */
-class CategoryData extends DataModelBase implements DataModelInterface
+class CategoryData extends Model implements DataModelInterface
 {
-    /**
-     * @var int
-     */
-    public $id = 0;
-    /**
-     * @var string
-     */
-    public $name = '';
-    /**
-     * @var string
-     */
-    public $description = '';
-    /**
-     * @var string
-     */
-    public $hash = '';
+    public ?int $id = null;
+    public ?string $name = null;
+    public ?string $description = null;
+    public ?string $hash = null;
 
-    /**
-     * accountDefaultPermissionData constructor.
-     *
-     * @param int    $id
-     * @param string $name
-     * @param string $description
-     */
-    public function __construct($id = null, $name = null, $description = null)
+    public function __construct(
+        ?int    $id = null,
+        ?string $name = null,
+        ?string $description = null
+    )
     {
         $this->id = $id;
         $this->name = $name;
         $this->description = $description;
     }
 
-    /**
-     * @return int
-     */
-    public function getId()
+    public function getId(): int
     {
         return (int)$this->id;
     }
 
-    /**
-     * @param int $id
-     *
-     * @return $this
-     */
-    public function setId($id)
+    public function setId(int $id): CategoryData
     {
-        $this->id = (int)$id;
+        $this->id = $id;
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-    /**
-     * @param string $name
-     */
-    public function setName($name)
+    public function setName(string $name): void
     {
         $this->name = $name;
     }
 
-    /**
-     * @return string
-     */
-    public function getDescription()
+    public function getDescription(): ?string
     {
         return $this->description;
     }
 
-    /**
-     * @param string $description
-     */
-    public function setDescription($description)
+    public function setDescription(?string $description): void
     {
         $this->description = $description;
     }
 
-    /**
-     * @return string
-     */
-    public function getHash()
+    public function getHash(): ?string
     {
         return $this->hash;
     }

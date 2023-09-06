@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2023, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Config;
@@ -27,12 +27,13 @@ namespace SP\Tests\Services\Config;
 use DI\DependencyException;
 use DI\NotFoundException;
 use PHPUnit\Framework\TestCase;
-use SP\Config\Config;
-use SP\Config\ConfigData;
 use SP\Core\Context\ContextException;
-use SP\Services\Config\ConfigBackupService;
-use SP\Services\ServiceException;
-use SP\Storage\File\FileException;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\Config\Adapters\ConfigData;
+use SP\Domain\Config\Ports\ConfigDataInterface;
+use SP\Domain\Config\Services\ConfigBackupService;
+use SP\Domain\Config\Services\ConfigFileService;
+use SP\Infrastructure\File\FileException;
 use function SP\Tests\getResource;
 use function SP\Tests\recreateDir;
 use function SP\Tests\saveResource;
@@ -47,7 +48,7 @@ class ConfigBackupServiceTest extends TestCase
 {
     protected static $currentConfig;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$currentConfig = getResource('config', 'config.xml');
     }
@@ -55,7 +56,7 @@ class ConfigBackupServiceTest extends TestCase
     /**
      * This method is called after the last test of this test class is run.
      */
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass(): void
     {
         saveResource('config', 'config.xml', self::$currentConfig);
         recreateDir(CACHE_PATH);
@@ -84,7 +85,7 @@ class ConfigBackupServiceTest extends TestCase
     /**
      * @depends testBackup
      *
-     * @param ConfigData $configData
+     * @param  ConfigDataInterface  $configData
      *
      * @throws DependencyException
      * @throws NotFoundException
@@ -92,7 +93,7 @@ class ConfigBackupServiceTest extends TestCase
      * @throws ServiceException
      * @throws FileException
      */
-    public function testRestore(ConfigData $configData)
+    public function testRestore(ConfigDataInterface $configData)
     {
         $dic = setupContext();
 
@@ -101,8 +102,9 @@ class ConfigBackupServiceTest extends TestCase
 
         $this->assertEquals($configData->getConfigVersion(), $data->getConfigVersion());
 
-        $config = $dic->get(Config::class);
-        $this->assertEquals($data->getConfigHash(), $config->loadConfigFromFile()->getConfigHash());
+        $config = $dic->get(ConfigFileService::class)->loadConfigFromFile();
 
+        $this->assertEquals($config->getConfigVersion(), $data->getConfigVersion());
+        $this->assertGreaterThanOrEqual($config->getConfigDate(), $data->getConfigDate());
     }
 }

@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Repositories;
@@ -31,8 +31,8 @@ use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
 use SP\DataModel\EventlogData;
 use SP\DataModel\ItemSearchData;
-use SP\Repositories\EventLog\EventlogRepository;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Security\Ports\EventlogRepositoryInterface;
+use SP\Infrastructure\Security\Repositories\EventlogRepository;
 use SP\Tests\DatabaseTestCase;
 use stdClass;
 use function SP\Tests\setupContext;
@@ -47,7 +47,7 @@ use function SP\Tests\setupContext;
 class EventlogRepositoryTest extends DatabaseTestCase
 {
     /**
-     * @var EventlogRepository
+     * @var EventlogRepositoryInterface
      */
     private static $repository;
 
@@ -56,14 +56,11 @@ class EventlogRepositoryTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_eventlog.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(EventlogRepository::class);
@@ -125,7 +122,7 @@ class EventlogRepositoryTest extends DatabaseTestCase
     {
         self::$repository->clear();
 
-        $this->assertEquals(0, $this->conn->getRowCount('EventLog'));
+        $this->assertEquals(0, self::getRowCount('EventLog'));
     }
 
     /**
@@ -144,11 +141,11 @@ class EventlogRepositoryTest extends DatabaseTestCase
         $eventlogData->setIpAddress('127.0.0.1');
         $eventlogData->setDescription('Prueba');
 
-        $countBefore = $this->conn->getRowCount('EventLog');
+        $countBefore = self::getRowCount('EventLog');
 
         self::$repository->create($eventlogData);
 
-        $countAfter = $this->conn->getRowCount('EventLog');
+        $countAfter = self::getRowCount('EventLog');
 
         $this->assertEquals($countBefore + 1, $countAfter);
 

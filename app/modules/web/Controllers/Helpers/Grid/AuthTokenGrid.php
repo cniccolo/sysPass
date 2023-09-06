@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Modules\Web\Controllers\Helpers\Grid;
@@ -34,7 +34,7 @@ use SP\Html\DataGrid\DataGridData;
 use SP\Html\DataGrid\DataGridInterface;
 use SP\Html\DataGrid\DataGridTab;
 use SP\Html\DataGrid\Layout\DataGridHeader;
-use SP\Storage\Database\QueryResult;
+use SP\Infrastructure\Database\QueryResult;
 
 /**
  * Class AuthTokenGrid
@@ -43,10 +43,7 @@ use SP\Storage\Database\QueryResult;
  */
 final class AuthTokenGrid extends GridBase
 {
-    /**
-     * @var QueryResult
-     */
-    private $queryResult;
+    private ?QueryResult $queryResult = null;
 
     /**
      * @param QueryResult $queryResult
@@ -119,9 +116,13 @@ final class AuthTokenGrid extends GridBase
         $gridData = new DataGridData();
         $gridData->setDataRowSourceId('id');
         $gridData->addDataRowSource('userLogin');
-        $gridData->addDataRowSource('actionId', false, function ($value) {
-            return Acl::getActionInfo($value);
-        });
+        $gridData->addDataRowSource(
+            'actionId',
+            false,
+            function ($value) {
+                return Acl::getActionInfo($value);
+            }
+        );
         $gridData->setData($this->queryResult);
 
         return $gridData;
@@ -130,7 +131,7 @@ final class AuthTokenGrid extends GridBase
     /**
      * @return DataGridActionSearch
      */
-    private function getSearchAction()
+    private function getSearchAction(): DataGridActionSearch
     {
         // Grid Actions
         $gridActionSearch = new DataGridActionSearch();
@@ -139,7 +140,10 @@ final class AuthTokenGrid extends GridBase
         $gridActionSearch->setName('frmSearchToken');
         $gridActionSearch->setTitle(__('Search for Token'));
         $gridActionSearch->setOnSubmitFunction('appMgmt/search');
-        $gridActionSearch->addData('action-route', Acl::getActionRoute(ActionsInterface::AUTHTOKEN_SEARCH));
+        $gridActionSearch->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::AUTHTOKEN_SEARCH)
+        );
 
         return $gridActionSearch;
     }
@@ -147,7 +151,7 @@ final class AuthTokenGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getCreateAction()
+    private function getCreateAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::AUTHTOKEN_CREATE);
@@ -157,7 +161,10 @@ final class AuthTokenGrid extends GridBase
         $gridAction->setIcon($this->icons->getIconAdd());
         $gridAction->setSkip(true);
         $gridAction->setOnClickFunction('appMgmt/show');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::AUTHTOKEN_CREATE));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::AUTHTOKEN_CREATE)
+        );
 
         return $gridAction;
     }
@@ -165,7 +172,7 @@ final class AuthTokenGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getViewAction()
+    private function getViewAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::AUTHTOKEN_VIEW);
@@ -174,7 +181,10 @@ final class AuthTokenGrid extends GridBase
         $gridAction->setTitle(__('View Authorization token'));
         $gridAction->setIcon($this->icons->getIconView());
         $gridAction->setOnClickFunction('appMgmt/show');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::AUTHTOKEN_VIEW));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::AUTHTOKEN_VIEW)
+        );
 
         return $gridAction;
     }
@@ -182,7 +192,7 @@ final class AuthTokenGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getEditAction()
+    private function getEditAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::AUTHTOKEN_EDIT);
@@ -191,7 +201,10 @@ final class AuthTokenGrid extends GridBase
         $gridAction->setTitle(__('Edit Authorization'));
         $gridAction->setIcon($this->icons->getIconEdit());
         $gridAction->setOnClickFunction('appMgmt/show');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::AUTHTOKEN_EDIT));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::AUTHTOKEN_EDIT)
+        );
 
         return $gridAction;
     }
@@ -199,7 +212,7 @@ final class AuthTokenGrid extends GridBase
     /**
      * @return DataGridAction
      */
-    private function getDeleteAction()
+    private function getDeleteAction(): DataGridAction
     {
         $gridAction = new DataGridAction();
         $gridAction->setId(ActionsInterface::AUTHTOKEN_DELETE);
@@ -208,7 +221,10 @@ final class AuthTokenGrid extends GridBase
         $gridAction->setTitle(__('Delete Authorization'));
         $gridAction->setIcon($this->icons->getIconDelete());
         $gridAction->setOnClickFunction('appMgmt/delete');
-        $gridAction->addData('action-route', Acl::getActionRoute(ActionsInterface::AUTHTOKEN_DELETE));
+        $gridAction->addData(
+            'action-route',
+            Acl::getActionRoute(ActionsInterface::AUTHTOKEN_DELETE)
+        );
 
         return $gridAction;
     }

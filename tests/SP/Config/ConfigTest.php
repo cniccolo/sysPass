@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Config;
@@ -29,10 +29,10 @@ use DI\Container;
 use DI\DependencyException;
 use DI\NotFoundException;
 use PHPUnit\Framework\TestCase;
-use SP\Config\Config;
-use SP\Config\ConfigData;
 use SP\Core\Context\ContextException;
-use SP\Storage\File\FileException;
+use SP\Domain\Config\Adapters\ConfigData;
+use SP\Domain\Config\Ports\ConfigInterface;
+use SP\Infrastructure\File\FileException;
 use function SP\Tests\getResource;
 use function SP\Tests\recreateDir;
 use function SP\Tests\saveResource;
@@ -59,7 +59,7 @@ class ConfigTest extends TestCase
     /**
      * @throws ContextException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$dic = setupContext();
 
@@ -70,7 +70,7 @@ class ConfigTest extends TestCase
     /**
      * This method is called after the last test of this test class is run.
      */
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass(): void
     {
         // Restore to the initial state
         saveResource('config', 'config.xml', self::$currentConfig);
@@ -83,11 +83,11 @@ class ConfigTest extends TestCase
      * @throws DependencyException
      * @throws NotFoundException
      */
-    public function testLoadClass()
+    public function testLoadClass(): \SP\Domain\Config\Ports\ConfigInterface
     {
-        $config = self::$dic->get(Config::class);
+        $config = self::$dic->get(\SP\Domain\Config\Services\ConfigFileService::class);
 
-        $this->assertInstanceOf(Config::class, $config);
+        $this->assertInstanceOf(\SP\Domain\Config\Services\ConfigFileService::class, $config);
         $this->assertFileExists(CONFIG_FILE);
 
         return $config;
@@ -98,11 +98,11 @@ class ConfigTest extends TestCase
      *
      * @depends testLoadClass
      *
-     * @param Config $config
+     * @param  ConfigInterface  $config
      *
      * @throws FileException
      */
-    public function testSaveConfig($config)
+    public function testSaveConfig(\SP\Domain\Config\Ports\ConfigInterface $config)
     {
         $config->saveConfig($config->getConfigData(), false);
 
@@ -115,10 +115,9 @@ class ConfigTest extends TestCase
      *
      * @depends testLoadClass
      *
-     * @param Config $config
-     *
+     * @param  ConfigInterface  $config
      */
-    public function testLoadConfig($config)
+    public function testLoadConfig(\SP\Domain\Config\Ports\ConfigInterface $config)
     {
         $this->assertInstanceOf(ConfigData::class, $config->loadConfig());
     }
@@ -128,13 +127,13 @@ class ConfigTest extends TestCase
      *
      * @depends testLoadClass
      *
-     * @param Config $config
+     * @param  ConfigInterface  $config
      */
-    public function testUpdateConfig($config)
+    public function testUpdateConfig(\SP\Domain\Config\Ports\ConfigInterface $config)
     {
         $config->updateConfig($config->getConfigData());
 
-        $this->assertEquals(Config::getTimeUpdated(), $config->getConfigData()->getConfigDate());
+        $this->assertEquals(\SP\Domain\Config\Services\ConfigFileService::getTimeUpdated(), $config->getConfigData()->getConfigDate());
     }
 
     /**
@@ -142,12 +141,12 @@ class ConfigTest extends TestCase
      *
      * @depends testLoadClass
      *
-     * @param Config $config
+     * @param  ConfigInterface  $config
      *
      * @throws EnvironmentIsBrokenException
      * @throws FileException
      */
-    public function testGenerateUpgradeKey($config)
+    public function testGenerateUpgradeKey(\SP\Domain\Config\Ports\ConfigInterface $config)
     {
         $config->generateUpgradeKey();
 

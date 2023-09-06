@@ -26,8 +26,8 @@ namespace SP\Tests\Storage;
 
 use Faker\Factory;
 use PHPUnit\Framework\TestCase;
-use SP\Storage\File\FileCachePacked;
-use SP\Storage\File\FileException;
+use SP\Infrastructure\File\FileCachePacked;
+use SP\Infrastructure\File\FileException;
 use stdClass;
 
 /**
@@ -44,7 +44,7 @@ class FileCachePackedTest extends TestCase
     /**
      * This method is called before the first test of this test class is run.
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$data = [];
         $i = 0;
@@ -72,7 +72,8 @@ class FileCachePackedTest extends TestCase
      */
     public function testDeleteInvalid()
     {
-        $this->expectException(FileException::class);
+        $this->expectNotToPerformAssertions();
+
         $cache = new FileCachePacked(self::CACHE_FILE);
         $cache->delete();
     }

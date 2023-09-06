@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Html\DataGrid;
@@ -39,60 +39,60 @@ interface DataGridSortInterface
     /**
      * @return int
      */
-    public function getSortKey();
+    public function getSortKey(): int;
 
     /**
      * @param $key int
      */
-    public function setSortKey($key);
+    public function setSortKey(int $key): DataGridSortInterface;
 
     /**
      * @return string
      */
-    public function getTitle();
+    public function getTitle(): string;
 
     /**
      * @param $title string
      */
-    public function setTitle($title);
+    public function setTitle(string $title): DataGridSortInterface;
 
     /**
      * @return string
      */
-    public function getName();
+    public function getName(): string;
 
     /**
      * @param $name string
      */
-    public function setName($name);
+    public function setName(string $name): DataGridSortInterface;
 
     /**
      * @return string
      */
-    public function getClass();
+    public function getClass(): string;
 
     /**
      * @param $class string
      */
-    public function setClass($class);
+    public function setClass(string $class): DataGridSortInterface;
 
     /**
-     * @return IconInterface
+     * @return IconInterface|null
      */
-    public function getIconUp();
-
-    /**
-     * @param IconInterface $icon
-     */
-    public function setIconUp(IconInterface $icon);
-
-    /**
-     * @return IconInterface
-     */
-    public function getIconDown();
+    public function getIconUp(): ?IconInterface;
 
     /**
      * @param IconInterface $icon
      */
-    public function setIconDown(IconInterface $icon);
+    public function setIconUp(IconInterface $icon): DataGridSortInterface;
+
+    /**
+     * @return IconInterface|null
+     */
+    public function getIconDown(): ?IconInterface;
+
+    /**
+     * @param IconInterface $icon
+     */
+    public function setIconDown(IconInterface $icon): DataGridSortInterface;
 }

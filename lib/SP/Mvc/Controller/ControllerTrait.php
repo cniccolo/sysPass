@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,18 +19,19 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Mvc\Controller;
 
 use Closure;
-use SP\Bootstrap;
-use SP\Config\ConfigData;
+use Klein\Klein;
+use SP\Core\Bootstrap\BootstrapBase;
 use SP\Core\Exceptions\SPException;
+use SP\Domain\Config\Ports\ConfigDataInterface;
 use SP\Http\Json;
 use SP\Http\JsonResponse;
-use SP\Http\Request;
+use SP\Http\RequestInterface;
 use SP\Http\Uri;
 use SP\Util\Util;
 
@@ -39,34 +40,45 @@ use SP\Util\Util;
  * Trait ControllerTrait
  *
  * @package SP\Mvc\Controller
- * @property ConfigData $configData
  */
 trait ControllerTrait
 {
-    /**
-     * @return string
-     */
-    protected function getControllerName()
+    protected Klein  $router;
+    protected string $controllerName;
+
+    protected function getControllerName(): string
     {
         $class = static::class;
 
         return substr($class, strrpos($class, '\\') + 1, -strlen('Controller')) ?: '';
     }
 
+    protected function getViewBaseName(): string
+    {
+        $parts = explode('\\', static::class);
+
+        return strtolower($parts[count($parts) - 2]);
+    }
+
     /**
      * Logout from current session
      *
-     * @param Request    $request
-     * @param ConfigData $configData
-     * @param Closure    $onRedirect
+     * @param  \SP\Http\RequestInterface  $request
+     * @param  \SP\Domain\Config\Ports\ConfigDataInterface  $configData
+     * @param  \Closure  $onRedirect
+     *
+     * @throws \SP\Core\Exceptions\SPException
      */
-    protected function sessionLogout(Request $request, ConfigData $configData, Closure $onRedirect)
-    {
+    protected function sessionLogout(
+        RequestInterface $request,
+        ConfigDataInterface $configData,
+        Closure $onRedirect
+    ): void {
         if ($request->isJson()) {
             $jsonResponse = new JsonResponse(__u('Session not started or timed out'));
             $jsonResponse->setStatus(10);
 
-            Json::fromDic()->returnJson($jsonResponse);
+            Json::factory($this->router->response())->returnJson($jsonResponse);
         } elseif ($request->isAjax()) {
             Util::logout();
         } else {
@@ -77,7 +89,7 @@ trait ControllerTrait
                 $route = $request->analyzeString('r');
                 $hash = $request->analyzeString('h');
 
-                $uri = new Uri(Bootstrap::$WEBROOT . Bootstrap::$SUBURI);
+                $uri = new Uri(BootstrapBase::$WEBROOT.BootstrapBase::$SUBURI);
                 $uri->addParam('_r', 'login');
 
                 if ($route && $hash) {
@@ -97,37 +109,32 @@ trait ControllerTrait
     }
 
     /**
-     * @param string  $previousToken
-     * @param Request $request
+     * Acción no disponible
      *
-     * @throws SPException
+     * @throws \SP\Core\Exceptions\SPException
      */
-    protected function checkSecurityToken($previousToken, Request $request)
+    protected function invalidAction(): void
     {
-        if ($request->analyzeString('h') !== null
-            && $request->analyzeString('from') === null
-            && isset($this->configData)
-        ) {
-            $request->verifySignature($this->configData->getPasswordSalt());
+        Json::factory($this->router->response())->returnJson(new JsonResponse(__u('Invalid Action')));
+    }
+
+    /**
+     * @throws SPException
+     * @deprecated
+     */
+    protected function checkSecurityToken(
+        string $previousToken,
+        RequestInterface $request,
+        ConfigDataInterface $configData
+    ): void {
+        if ($request->analyzeString('h') !== null && $request->analyzeString('from') === null) {
+            $request->verifySignature($configData->getPasswordSalt());
         } else {
             $sk = $request->analyzeString('sk');
 
             if (!$sk || $previousToken !== $sk) {
-                throw new SPException(
-                    __u('Invalid Action'),
-                    SPException::ERROR,
-                    null,
-                    1
-                );
+                throw new SPException(__u('Invalid Action'), SPException::ERROR, null, 1);
             }
         }
-    }
-
-    /**
-     * Acción no disponible
-     */
-    protected function invalidAction()
-    {
-        Json::fromDic()->returnJson(new JsonResponse(__u('Invalid Action')));
     }
 }

@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,10 +19,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace SP\Tests\SP\Services\UserGroup;
+namespace SP\Tests\Services\UserGroup;
 
 use DI\DependencyException;
 use DI\NotFoundException;
@@ -32,24 +32,22 @@ use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
 use SP\DataModel\ItemSearchData;
 use SP\DataModel\UserGroupData;
-use SP\Repositories\DuplicatedItemException;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\ServiceException;
-use SP\Services\UserGroup\UserGroupService;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Infrastructure\Common\Repositories\DuplicatedItemException;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
 /**
  * Class UserGroupServiceTest
  *
- * @package SP\Tests\SP\Services\UserGroup
+ * @package SP\Tests\SP\Domain\Common\Services\UserGroup
  */
 class UserGroupServiceTest extends DatabaseTestCase
 {
 
     /**
-     * @var UserGroupService
+     * @var \SP\Domain\User\Ports\UserGroupServiceInterface
      */
     private static $service;
 
@@ -59,17 +57,14 @@ class UserGroupServiceTest extends DatabaseTestCase
      * @throws DependencyException
      * @throws SPException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_userGroup.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
-        self::$service = $dic->get(UserGroupService::class);
+        self::$service = $dic->get(\SP\Domain\User\Services\UserGroupService::class);
     }
 
     /**
@@ -80,7 +75,7 @@ class UserGroupServiceTest extends DatabaseTestCase
     {
         $data = self::$service->getAllBasic();
 
-        $this->assertCount(5, $data);
+        $this->assertCount(6, $data);
 
         $this->assertInstanceOf(UserGroupData::class, $data[0]);
         $this->assertEquals('Admins', $data[0]->getName());
@@ -96,9 +91,9 @@ class UserGroupServiceTest extends DatabaseTestCase
      */
     public function testDelete()
     {
-        self::$service->delete(3);
+        self::$service->delete(5);
 
-        $this->assertEquals(4, $this->conn->getRowCount('UserGroup'));
+        $this->assertEquals(5, self::getRowCount('UserGroup'));
     }
 
     /**
@@ -128,15 +123,15 @@ class UserGroupServiceTest extends DatabaseTestCase
      */
     public function testDeleteByIdBatch()
     {
-        $this->assertEquals(2, self::$service->deleteByIdBatch([4, 5]));
+        $this->assertEquals(2, self::$service->deleteByIdBatch([5, 6]));
 
-        $this->assertEquals(3, $this->conn->getRowCount('UserGroup'));
+        $this->assertEquals(4, self::getRowCount('UserGroup'));
     }
 
     /**
      * @throws ConstraintException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testDeleteByIdBatchUsed()
     {
@@ -149,13 +144,13 @@ class UserGroupServiceTest extends DatabaseTestCase
     /**
      * @throws ConstraintException
      * @throws QueryException
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testDeleteByIdBatchUnknown()
     {
         $this->expectException(ServiceException::class);
 
-        self::$service->deleteByIdBatch([4, 5, 10]);
+        self::$service->deleteByIdBatch([5, 6, 10]);
     }
 
     /**
@@ -177,7 +172,7 @@ class UserGroupServiceTest extends DatabaseTestCase
     }
 
     /**
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testUpdateDuplicated()
     {
@@ -198,9 +193,11 @@ class UserGroupServiceTest extends DatabaseTestCase
     {
         $this->assertCount(7, self::$service->getUsage(2));
 
-        $this->assertCount(1, self::$service->getUsage(3));
+        $this->assertCount(3, self::$service->getUsage(3));
 
-        $this->assertCount(0, self::$service->getUsage(4));
+        $this->assertCount(1, self::$service->getUsage(4));
+
+        $this->assertCount(0, self::$service->getUsage(5));
     }
 
     /**
@@ -212,7 +209,7 @@ class UserGroupServiceTest extends DatabaseTestCase
     public function testCreate()
     {
         $data = new UserGroupData();
-        $data->setId(6);
+        $data->setId(7);
         $data->setName('Test group');
         $data->setDescription('Group for demo users');
         $data->setUsers([2]);
@@ -223,7 +220,7 @@ class UserGroupServiceTest extends DatabaseTestCase
     }
 
     /**
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testCreateDuplicated()
     {
@@ -262,7 +259,7 @@ class UserGroupServiceTest extends DatabaseTestCase
 
         $result = self::$service->search($itemSearchData);
 
-        $this->assertEquals(2, $result->getNumRows());
+        $this->assertEquals(3, $result->getNumRows());
 
         $itemSearchData = new ItemSearchData();
         $itemSearchData->setLimitCount(10);
@@ -320,6 +317,6 @@ class UserGroupServiceTest extends DatabaseTestCase
 
         $this->assertCount(5, self::$service->getUsageByUsers(2));
 
-        $this->assertCount(0, self::$service->getUsageByUsers(4));
+        $this->assertCount(0, self::$service->getUsageByUsers(5));
     }
 }

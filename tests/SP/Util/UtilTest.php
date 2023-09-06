@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2023, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,10 +19,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace SP\Tests\SP\Util;
+namespace SP\Tests\Util;
 
 use PHPUnit\Framework\TestCase;
 use SP\Util\Util;
@@ -37,7 +37,7 @@ class UtilTest extends TestCase
     /**
      * This method is called after the last test of this test class is run.
      */
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass(): void
     {
         ini_set('memory_limit', -1);
     }
@@ -67,7 +67,7 @@ class UtilTest extends TestCase
     {
         $upload = ini_set('upload_max_filesize', '30M');
         $post = ini_set('post_max_size', '10M');
-        $memory = ini_set('memory_limit', 15728640);
+        $memory = ini_set('memory_limit', memory_get_usage() * 1.5);
 
         if ($upload !== false
             && $post !== false
@@ -91,10 +91,7 @@ class UtilTest extends TestCase
         $this->assertEquals($expected, Util::boolval($value, true));
     }
 
-    /**
-     * @return array
-     */
-    public function boolProvider()
+    public static function boolProvider(): array
     {
         return [
             ['false', false],
@@ -117,10 +114,7 @@ class UtilTest extends TestCase
         self::markTestIncomplete();
     }
 
-    /**
-     * @return array
-     */
-    public function unitsProvider()
+    public static function unitsProvider(): array
     {
         return [
             ['128K', 131072],

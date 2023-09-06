@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2023, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,14 +19,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Core\Context;
 
-use SP\DataModel\Dto\AccountCache;
 use SP\DataModel\ProfileData;
-use SP\Services\User\UserLoginResponse;
+use SP\Domain\User\Services\UserLoginResponse;
 
 /**
  * Class ContextInterface
@@ -35,161 +34,120 @@ use SP\Services\User\UserLoginResponse;
  */
 interface ContextInterface
 {
+    const MASTER_PASSWORD_KEY = '_masterpass';
+
     /**
      * @throws ContextException
      */
     public function initialize();
 
+    public function isInitialized(): bool;
+
     /**
      * Establecer la hora de carga de la configuración
-     *
-     * @param int $time
      */
-    public function setConfigTime($time);
+    public function setConfigTime(int $time);
 
     /**
      * Devolver la hora de carga de la configuración
-     *
-     * @return int
      */
-    public function getConfigTime();
+    public function getConfigTime(): int;
 
     /**
      * Establece los datos del usuario en la sesión.
-     *
-     * @param UserLoginResponse $userLoginResponse
      */
-    public function setUserData(UserLoginResponse $userLoginResponse = null);
+    public function setUserData(?UserLoginResponse $userLoginResponse = null);
 
     /**
      * Obtiene el objeto de perfil de usuario de la sesión.
-     *
-     * @return ProfileData
      */
-    public function getUserProfile();
+    public function getUserProfile(): ?ProfileData;
 
     /**
      * Establece el objeto de perfil de usuario en la sesión.
-     *
-     * @param ProfileData $ProfileData
      */
-    public function setUserProfile(ProfileData $ProfileData);
+    public function setUserProfile(ProfileData $profileData);
 
     /**
      * Returns if user is logged in
-     *
-     * @return bool
      */
-    public function isLoggedIn();
+    public function isLoggedIn(): bool;
 
     /**
      * Devuelve los datos del usuario en la sesión.
-     *
-     * @return UserLoginResponse
      */
-    public function getUserData();
-
-    /**
-     * @return mixed
-     */
-    public function getSecurityKey();
-
-    /**
-     * @param string $salt
-     *
-     * @return string
-     */
-    public function generateSecurityKey(string $salt);
-
-    /**
-     * @param $sk
-     */
-    public function setSecurityKey($sk);
+    public function getUserData(): UserLoginResponse;
 
     /**
      * Establecer el lenguaje de la sesión
-     *
-     * @param $locale
      */
-    public function setLocale($locale);
+    public function setLocale(string $locale);
 
     /**
      * Devuelve el lenguaje de la sesión
-     *
-     * @return string
      */
-    public function getLocale();
+    public function getLocale(): ?string;
 
     /**
      * Devuelve el estado de la aplicación
-     *
-     * @return bool
      */
-    public function getAppStatus();
+    public function getAppStatus(): ?bool;
 
     /**
      * Establecer el estado de la aplicación
-     *
-     * @param string $status
      */
-    public function setAppStatus($status);
+    public function setAppStatus(string $status);
 
     /**
      * Reset del estado de la aplicación
-     *
-     * @return bool
      */
-    public function resetAppStatus();
+    public function resetAppStatus(): ?bool;
 
     /**
-     * @return AccountCache[]|null
+     * @return \SP\Domain\Account\Dtos\AccountCacheDto[]|null
      */
-    public function getAccountsCache();
+    public function getAccountsCache(): ?array;
+
+    /**
+     * Establece la cache de cuentas
+     *
+     * @param  array  $accountsCache
+     */
+    public function setAccountsCache(array $accountsCache): void;
 
     /**
      * Sets an arbitrary key in the trasient collection.
      * This key is not bound to any known method or type
      *
-     * @param string $key
-     * @param mixed  $value
+     * @param  string  $key
+     * @param  mixed  $value
      *
-     * @return mixed
      * @throws ContextException
      */
-    public function setTrasientKey(string $key, $value);
+    public function setTrasientKey(string $key, mixed $value);
 
     /**
      * Gets an arbitrary key from the trasient collection.
      * This key is not bound to any known method or type
      *
-     * @param string $key
-     * @param mixed  $default
+     * @param  string  $key
+     * @param  mixed|null  $default
      *
      * @return mixed
      */
-    public function getTrasientKey(string $key, $default = null);
+    public function getTrasientKey(string $key, mixed $default = null): mixed;
 
     /**
      * Sets a temporary master password
-     *
-     * @param string $password
      */
     public function setTemporaryMasterPass(string $password);
 
     /**
-     * @param string $pluginName
-     * @param string $key
-     * @param mixed  $value
-     *
-     * @return mixed
+     * @param  string  $pluginName
+     * @param  string  $key
+     * @param  mixed  $value
      */
-    public function setPluginKey(string $pluginName, string $key, $value);
+    public function setPluginKey(string $pluginName, string $key, mixed $value);
 
-    /**
-     * @param string $pluginName
-     * @param string $key
-     *
-     * @return mixed
-     */
-    public function getPluginKey(string $pluginName, string $key);
+    public function getPluginKey(string $pluginName, string $key): mixed;
 }

@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,10 +19,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\DataModel;
+
+use SP\Domain\Common\Adapters\DataModelInterface;
+use SP\Domain\Common\Models\Model;
 
 defined('APP_ROOT') || die();
 
@@ -31,7 +34,7 @@ defined('APP_ROOT') || die();
  *
  * @package SP\Mgmt\Tags
  */
-class TagData extends DataModelBase implements DataModelInterface
+class TagData extends Model implements DataModelInterface
 {
     /**
      * @var int
@@ -80,6 +83,14 @@ class TagData extends DataModelBase implements DataModelInterface
     }
 
     /**
+     * Formatear el nombre de la etiqueta y devolver un hash
+     */
+    protected function createTagHash()
+    {
+        $this->hash = sha1(strtolower(preg_replace('#[\.\s_,\-;\'":()|/"]+#', '', $this->name)));
+    }
+
+    /**
      * @return string
      */
     public function getHash()
@@ -93,13 +104,5 @@ class TagData extends DataModelBase implements DataModelInterface
     public function setHash($hash)
     {
         $this->hash = $hash;
-    }
-
-    /**
-     * Formatear el nombre de la etiqueta y devolver un hash
-     */
-    protected function createTagHash()
-    {
-        $this->hash = sha1(strtolower(preg_replace('#[\.\s_,\-;\'":()|/"]+#', '', $this->name)));
     }
 }

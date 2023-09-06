@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2023, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,12 +19,12 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Core\Crypt;
 
-use SP\Http\Request;
+use SP\Http\RequestInterface;
 
 /**
  * Class SecureCookie
@@ -36,14 +36,9 @@ class UUIDCookie extends Cookie
     /**
      * Nombre de la cookie
      */
-    const COOKIE_NAME = 'SYSPASS_UUID';
+    public const COOKIE_NAME = 'SYSPASS_UUID';
 
-    /**
-     * @param Request $request
-     *
-     * @return UUIDCookie
-     */
-    public static function factory(Request $request)
+    public static function factory(RequestInterface $request): UUIDCookie
     {
         return new self(self::COOKIE_NAME, $request);
     }
@@ -51,11 +46,9 @@ class UUIDCookie extends Cookie
     /**
      * Creates a cookie and sets its data
      *
-     * @param string $signKey Signing key
-     *
      * @return string|false
      */
-    public function createCookie($signKey)
+    public function create(string $signKey): bool|string
     {
         $uuid = uniqid('', true);
 
@@ -69,14 +62,14 @@ class UUIDCookie extends Cookie
     /**
      * Loads cookie data
      *
-     * @param string $signKey Signing key
-     *
      * @return false|string
      */
-    public function loadCookie($signKey)
+    public function load(string $signKey): bool|string
     {
         $data = $this->getCookie();
 
-        return $data !== false ? $this->getCookieData($data, $signKey) : false;
+        return $data !== false
+            ? $this->getCookieData($data, $signKey)
+            : false;
     }
 }

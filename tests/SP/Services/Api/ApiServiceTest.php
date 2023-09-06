@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Api;
@@ -30,10 +30,10 @@ use DI\NotFoundException;
 use SP\Core\Acl\ActionsInterface;
 use SP\Core\Context\ContextException;
 use SP\Core\Exceptions\SPException;
-use SP\Services\Api\ApiRequest;
-use SP\Services\Api\ApiService;
-use SP\Services\ServiceException;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Api\Ports\ApiServiceInterface;
+use SP\Domain\Api\Services\ApiRequest;
+use SP\Domain\Api\Services\ApiService;
+use SP\Domain\Common\Services\ServiceException;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\getResource;
 use function SP\Tests\setupContext;
@@ -50,7 +50,7 @@ class ApiServiceTest extends DatabaseTestCase
     const DEMO_TOKEN = '12b9027d24efff7bfbaca8bd774a4c34b45de35e033d2b192a88f4dfaee5c233';
 
     /**
-     * @var ApiService
+     * @var \SP\Domain\Api\Ports\ApiServiceInterface
      */
     private static $service;
     /**
@@ -63,14 +63,11 @@ class ApiServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_authToken.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
         self::$service = $dic->get(ApiService::class);
@@ -81,7 +78,7 @@ class ApiServiceTest extends DatabaseTestCase
     }
 
     /**
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      * @throws SPException
      */
     public function testSetup()
@@ -136,7 +133,7 @@ class ApiServiceTest extends DatabaseTestCase
     }
 
     /**
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      * @throws SPException
      */
     public function testGetParamInt()
@@ -172,7 +169,7 @@ class ApiServiceTest extends DatabaseTestCase
     }
 
     /**
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      * @throws SPException
      */
     public function testGetParamRaw()
@@ -198,7 +195,7 @@ class ApiServiceTest extends DatabaseTestCase
     }
 
     /**
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      */
     public function testGetMasterPass()
     {

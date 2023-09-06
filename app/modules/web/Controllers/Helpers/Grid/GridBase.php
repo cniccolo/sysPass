@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,14 +19,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Modules\Web\Controllers\Helpers\Grid;
 
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
 use SP\Core\Acl\Acl;
+use SP\Core\Application;
 use SP\Core\UI\ThemeIcons;
 use SP\DataModel\ItemSearchData;
 use SP\Html\DataGrid\Action\DataGridActionSearch;
@@ -34,7 +33,9 @@ use SP\Html\DataGrid\DataGridData;
 use SP\Html\DataGrid\DataGridInterface;
 use SP\Html\DataGrid\Layout\DataGridHeader;
 use SP\Html\DataGrid\Layout\DataGridPager;
+use SP\Http\RequestInterface;
 use SP\Modules\Web\Controllers\Helpers\HelperBase;
+use SP\Mvc\View\TemplateInterface;
 
 /**
  * Class GridBase
@@ -43,33 +44,40 @@ use SP\Modules\Web\Controllers\Helpers\HelperBase;
  */
 abstract class GridBase extends HelperBase implements GridInterface
 {
-    /**
-     * @var float
-     */
-    protected $queryTimeStart;
-    /**
-     * @var ThemeIcons
-     */
-    protected $icons;
-    /**
-     * @var Acl
-     */
-    protected $acl;
+    protected float      $queryTimeStart;
+    protected ThemeIcons $icons;
+    protected Acl        $acl;
+
+    public function __construct(
+        Application $application,
+        TemplateInterface $template,
+        RequestInterface $request,
+        Acl $acl
+    ) {
+        parent::__construct($application, $template, $request);
+
+        $this->queryTimeStart = microtime(true);
+        $this->acl = $acl;
+        $this->icons = $this->view->getTheme()->getIcons();
+    }
+
 
     /**
      * Actualizar los datos del paginador
      *
-     * @param DataGridInterface $dataGrid
-     * @param ItemSearchData    $itemSearchData
+     * @param  DataGridInterface  $dataGrid
+     * @param  ItemSearchData  $itemSearchData
      *
      * @return DataGridInterface
      */
-    public function updatePager(DataGridInterface $dataGrid, ItemSearchData $itemSearchData)
-    {
+    public function updatePager(
+        DataGridInterface $dataGrid,
+        ItemSearchData $itemSearchData
+    ): DataGridInterface {
         $dataGrid->getPager()
             ->setLimitStart($itemSearchData->getLimitStart())
             ->setLimitCount($itemSearchData->getLimitCount())
-            ->setFilterOn($itemSearchData->getSeachString() !== '');
+            ->setFilterOn(!empty($itemSearchData->getSeachString()));
 
         $dataGrid->updatePager();
 
@@ -79,12 +87,13 @@ abstract class GridBase extends HelperBase implements GridInterface
     /**
      * Devolver el paginador por defecto
      *
-     * @param DataGridActionSearch $sourceAction
+     * @param  DataGridActionSearch  $sourceAction
      *
      * @return DataGridPager
      */
-    final protected function getPager(DataGridActionSearch $sourceAction)
-    {
+    final protected function getPager(
+        DataGridActionSearch $sourceAction
+    ): DataGridPager {
         $gridPager = new DataGridPager();
         $gridPager->setSourceAction($sourceAction);
         $gridPager->setOnClickFunction('appMgmt/nav');
@@ -99,28 +108,17 @@ abstract class GridBase extends HelperBase implements GridInterface
     }
 
     /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    final protected function initialize()
-    {
-        $this->queryTimeStart = microtime(true);
-        $this->acl = $this->dic->get(Acl::class);
-        $this->icons = $this->view->getTheme()->getIcons();
-    }
-
-    /**
      * @return DataGridInterface
      */
-    protected abstract function getGridLayout(): DataGridInterface;
+    abstract protected function getGridLayout(): DataGridInterface;
 
     /**
      * @return DataGridHeader
      */
-    protected abstract function getHeader(): DataGridHeader;
+    abstract protected function getHeader(): DataGridHeader;
 
     /**
      * @return DataGridData
      */
-    protected abstract function getData(): DataGridData;
+    abstract protected function getData(): DataGridData;
 }

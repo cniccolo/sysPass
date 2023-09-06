@@ -38,11 +38,10 @@ use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
 use SP\DataModel\AuthTokenData;
 use SP\DataModel\ItemSearchData;
-use SP\Repositories\DuplicatedItemException;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\AuthToken\AuthTokenService;
-use SP\Services\ServiceException;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Auth\Services\AuthTokenService;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Infrastructure\Common\Repositories\DuplicatedItemException;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use SP\Util\Util;
 use stdClass;
@@ -68,14 +67,11 @@ class AuthTokenServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_authToken.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
         self::$service = $dic->get(AuthTokenService::class);
@@ -94,7 +90,7 @@ class AuthTokenServiceTest extends DatabaseTestCase
 
         self::$service->delete(10);
 
-        $this->assertEquals(4, $this->conn->getRowCount('AuthToken'));
+        $this->assertEquals(4, self::getRowCount('AuthToken'));
     }
 
     /**
@@ -112,7 +108,7 @@ class AuthTokenServiceTest extends DatabaseTestCase
 
         self::$service->deleteByIdBatch([3, 10]);
 
-        $this->assertEquals(2, $this->conn->getRowCount('AuthToken'));
+        $this->assertEquals(2, self::getRowCount('AuthToken'));
 
     }
 
@@ -145,7 +141,7 @@ class AuthTokenServiceTest extends DatabaseTestCase
     }
 
     /**
-     * @throws ServiceException
+     * @throws \SP\Domain\Common\Services\ServiceException
      * @throws CryptoException
      * @throws ConstraintException
      * @throws QueryException
@@ -284,7 +280,7 @@ class AuthTokenServiceTest extends DatabaseTestCase
         $authTokenData->setUserId(2);
 
         $this->assertEquals(6, self::$service->create($authTokenData));
-        $this->assertEquals(6, $this->conn->getRowCount('AuthToken'));
+        $this->assertEquals(6, self::getRowCount('AuthToken'));
 
         $data = self::$service->getTokenByToken(ActionsInterface::ACCOUNT_CREATE, $authTokenData->getToken());
 

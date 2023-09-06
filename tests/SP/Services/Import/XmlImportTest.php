@@ -25,16 +25,14 @@
 namespace SP\Tests\Services\Import;
 
 use DI\Container;
-use DI\DependencyException;
-use DI\NotFoundException;
 use SP\Core\Context\ContextException;
-use SP\Services\Import\FileImport;
-use SP\Services\Import\ImportException;
-use SP\Services\Import\ImportParams;
-use SP\Services\Import\XmlFileImport;
-use SP\Services\Import\XmlImport;
-use SP\Storage\Database\DatabaseConnectionData;
-use SP\Storage\File\FileException;
+use SP\Core\Exceptions\SPException;
+use SP\Domain\Import\Services\FileImport;
+use SP\Domain\Import\Services\ImportException;
+use SP\Domain\Import\Services\ImportParams;
+use SP\Domain\Import\Services\XmlFileImport;
+use SP\Domain\Import\Services\XmlImport;
+use SP\Infrastructure\File\FileException;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -51,23 +49,19 @@ class XmlImportTest extends DatabaseTestCase
     protected static $dic;
 
     /**
-     * @throws NotFoundException
      * @throws ContextException
-     * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$dic = setupContext();
 
-        self::$dataset = 'syspass_import.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = self::$dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
     }
 
     /**
      * @throws ImportException
      * @throws FileException
+     * @throws SPException
      */
     public function testDoImport()
     {
@@ -75,13 +69,13 @@ class XmlImportTest extends DatabaseTestCase
         $params->setDefaultUser(1);
         $params->setDefaultGroup(1);
 
-        $file = RESOURCE_DIR . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass.xml';
+        $file = RESOURCE_PATH . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass.xml';
 
         $import = new XmlImport(self::$dic, new XmlFileImport(FileImport::fromFilesystem($file)), $params);
 
         $this->assertEquals(5, $import->doImport()->getCounter());
 
-        $file = RESOURCE_DIR . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_keepass.xml';
+        $file = RESOURCE_PATH . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_keepass.xml';
 
         $import = new XmlImport(self::$dic, new XmlFileImport(FileImport::fromFilesystem($file)), $params);
 

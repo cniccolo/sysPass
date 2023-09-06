@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Repositories;
@@ -30,9 +30,9 @@ use SP\Core\Context\ContextException;
 use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
 use SP\DataModel\ItemData;
-use SP\Repositories\Account\AccountToTagRepository;
-use SP\Services\Account\AccountRequest;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Account\Dtos\AccountRequest;
+use SP\Domain\Account\Ports\AccountToTagRepositoryInterface;
+use SP\Infrastructure\Account\Repositories\AccountToTagRepository;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -46,7 +46,7 @@ use function SP\Tests\setupContext;
 class AccountToTagRepositoryTest extends DatabaseTestCase
 {
     /**
-     * @var AccountToTagRepository
+     * @var AccountToTagRepositoryInterface
      */
     private static $repository;
 
@@ -55,14 +55,11 @@ class AccountToTagRepositoryTest extends DatabaseTestCase
      * @throws NotFoundException
      * @throws ContextException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(AccountToTagRepository::class);
@@ -76,7 +73,7 @@ class AccountToTagRepositoryTest extends DatabaseTestCase
      */
     public function testGetTagsByAccountId()
     {
-        $this->assertEquals(1, self::$repository->getTagsByAccountId(1)->getNumRows());
+        $this->assertEquals(2, self::$repository->getTagsByAccountId(1)->getNumRows());
         $this->assertEquals(0, self::$repository->getTagsByAccountId(10)->getNumRows());
     }
 
@@ -90,9 +87,9 @@ class AccountToTagRepositoryTest extends DatabaseTestCase
     {
         $accountRequest = new AccountRequest();
         $accountRequest->id = 1;
-        $accountRequest->tags = [2, 3];
+        $accountRequest->tags = [3];
 
-        $this->assertEquals(2, self::$repository->add($accountRequest));
+        $this->assertEquals(1, self::$repository->add($accountRequest));
 
         $result = self::$repository->getTagsByAccountId($accountRequest->id);
         $data = $result->getDataAsArray();
@@ -122,7 +119,7 @@ class AccountToTagRepositoryTest extends DatabaseTestCase
      */
     public function testDeleteByAccountId()
     {
-        $this->assertEquals(1, self::$repository->deleteByAccountId(1));
+        $this->assertEquals(2, self::$repository->deleteByAccountId(1));
 
         $this->assertEquals(0, self::$repository->getTagsByAccountId(1)->getNumRows());
 

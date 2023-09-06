@@ -26,15 +26,15 @@ namespace SP\Tests\Storage;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use SP\Storage\File\FileException;
-use SP\Storage\File\FileHandler;
-use SP\Storage\File\XmlHandler;
+use SP\Infrastructure\File\FileException;
+use SP\Infrastructure\File\FileHandler;
+use SP\Infrastructure\File\XmlHandler;
 use stdClass;
 
 /**
  * Class XmlHandlerTest
  *
- * Tests unitarios para comprobar el funcionamiento de la clase SP\Storage\File\XmlHandler
+ * Tests unitarios para comprobar el funcionamiento de la clase SP\Infrastructure\File\XmlHandler
  *
  * @package SP\Tests
  */
@@ -53,9 +53,9 @@ class XmlHandlerTest extends TestCase
      */
     protected $items;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
-        $file = RESOURCE_DIR . DIRECTORY_SEPARATOR . 'config.xml';
+        $file = RESOURCE_PATH . DIRECTORY_SEPARATOR . 'config.xml';
         self::$xmlHandler = new XmlHandler(new FileHandler($file));
 
         self::$itemsData = new stdClass();

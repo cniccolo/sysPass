@@ -28,8 +28,8 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SP\Core\Exceptions\CheckException;
 use SP\Core\PhpExtensionChecker;
-use SP\Storage\File\ArchiveHandler;
-use SP\Storage\File\FileException;
+use SP\Infrastructure\File\ArchiveHandler;
+use SP\Infrastructure\File\FileException;
 use UnexpectedValueException;
 
 /**
@@ -50,7 +50,7 @@ class ArchiveHandlerTest extends TestCase
         $archive = TMP_PATH . DIRECTORY_SEPARATOR . 'test_archive_file';
 
         $handler = new ArchiveHandler($archive, new PhpExtensionChecker());
-        $handler->compressFile(RESOURCE_DIR . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.xml');
+        $handler->compressFile(RESOURCE_PATH . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.xml');
 
         $this->assertFileExists($archive . ArchiveHandler::COMPRESS_EXTENSION);
     }
@@ -66,7 +66,7 @@ class ArchiveHandlerTest extends TestCase
         $archive = TMP_PATH . DIRECTORY_SEPARATOR . 'test_archive_file';
 
         $handler = new ArchiveHandler($archive, new PhpExtensionChecker());
-        $handler->compressFile(RESOURCE_DIR . DIRECTORY_SEPARATOR . 'non_existant_file');
+        $handler->compressFile(RESOURCE_PATH . DIRECTORY_SEPARATOR . 'non_existant_file');
     }
 
     /**
@@ -78,7 +78,7 @@ class ArchiveHandlerTest extends TestCase
         $archive = TMP_PATH . DIRECTORY_SEPARATOR . 'test_archive_dir';
 
         $handler = new ArchiveHandler($archive, new PhpExtensionChecker());
-        $handler->compressDirectory(RESOURCE_DIR);
+        $handler->compressDirectory(RESOURCE_PATH);
 
         $this->assertFileExists($archive . ArchiveHandler::COMPRESS_EXTENSION);
     }
@@ -94,14 +94,14 @@ class ArchiveHandlerTest extends TestCase
         $archive = TMP_PATH . DIRECTORY_SEPARATOR . 'test_archive_dir';
 
         $handler = new ArchiveHandler($archive, new PhpExtensionChecker());
-        $handler->compressDirectory(RESOURCE_DIR . DIRECTORY_SEPARATOR . 'non_existant_dir');
+        $handler->compressDirectory(RESOURCE_PATH . DIRECTORY_SEPARATOR . 'non_existant_dir');
     }
 
     /**
      * Sets up the fixture, for example, open a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         array_map('unlink', glob(TMP_PATH . DIRECTORY_SEPARATOR . 'test_archive_*'));
     }

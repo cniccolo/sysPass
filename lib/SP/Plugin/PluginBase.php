@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Plugin;
@@ -29,8 +29,8 @@ use Psr\Container\ContainerInterface;
 use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\NoSuchPropertyException;
 use SP\Core\Exceptions\QueryException;
-use SP\Services\Plugin\PluginService;
-use SP\Services\ServiceException;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\Plugin\Services\PluginService;
 
 /**
  * Class PluginBase
@@ -40,33 +40,21 @@ use SP\Services\ServiceException;
 abstract class PluginBase implements PluginInterface
 {
     /**
-     * @var string Directorio base
+     * @var string|null Directorio base
      */
-    protected $base;
+    protected ?string $base = null;
     /**
-     * @var string Tipo de plugin
+     * @var string|null Tipo de plugin
      */
-    protected $type;
-    /**
-     * @var string
-     */
-    protected $themeDir;
+    protected ?string $type = null;
+    protected ?string $themeDir = null;
     /**
      * @var mixed
      */
     protected $data;
-    /**
-     * @var int
-     */
-    protected $enabled;
-    /**
-     * @var PluginOperation
-     */
-    protected $pluginOperation;
-    /**
-     * @var PluginService
-     */
-    private $pluginService;
+    protected ?int $enabled;
+    protected PluginOperation $pluginOperation;
+    private PluginService $pluginService;
 
     /**
      * PluginBase constructor.
@@ -74,8 +62,12 @@ abstract class PluginBase implements PluginInterface
      * @param ContainerInterface $dic
      * @param PluginOperation    $pluginOperation
      */
-    public final function __construct(ContainerInterface $dic, PluginOperation $pluginOperation)
+    final public function __construct(
+        ContainerInterface $dic,
+        PluginOperation    $pluginOperation
+    )
     {
+        /** @noinspection UnusedConstructorDependenciesInspection */
         $this->pluginService = $dic->get(PluginService::class);
         $this->pluginOperation = $pluginOperation;
         $this->init($dic);
@@ -84,7 +76,7 @@ abstract class PluginBase implements PluginInterface
     /**
      * @return string
      */
-    public function getType()
+    public function getType(): ?string
     {
         return $this->type;
     }
@@ -92,7 +84,7 @@ abstract class PluginBase implements PluginInterface
     /**
      * @param string $type
      */
-    public function setType($type)
+    public function setType(string $type): void
     {
         $this->type = $type;
     }
@@ -100,7 +92,7 @@ abstract class PluginBase implements PluginInterface
     /**
      * @return string
      */
-    public function getThemeDir()
+    public function getThemeDir(): ?string
     {
         return $this->themeDir;
     }
@@ -116,17 +108,17 @@ abstract class PluginBase implements PluginInterface
     /**
      * @return int
      */
-    public function getEnabled()
+    public function getEnabled(): ?int
     {
-        return (int)$this->enabled;
+        return $this->enabled;
     }
 
     /**
      * @param int $enabled
      */
-    public function setEnabled($enabled)
+    public function setEnabled(int $enabled): void
     {
-        $this->enabled = (int)$enabled;
+        $this->enabled = $enabled;
     }
 
     /**
@@ -139,7 +131,7 @@ abstract class PluginBase implements PluginInterface
      * @throws QueryException
      * @throws ServiceException
      */
-    final public function saveData(int $id, $data)
+    final public function saveData(int $id, $data): void
     {
         if ($this->data === null) {
             $this->pluginOperation->create($id, $data);
@@ -153,7 +145,7 @@ abstract class PluginBase implements PluginInterface
     /**
      * Establecer las locales del plugin
      */
-    protected function setLocales()
+    protected function setLocales(): void
     {
         $locales = $this->getBase() . DIRECTORY_SEPARATOR . 'locales';
         $name = strtolower($this->getName());
@@ -165,7 +157,7 @@ abstract class PluginBase implements PluginInterface
     /**
      * @return string
      */
-    public function getBase()
+    public function getBase(): ?string
     {
         return $this->base;
     }

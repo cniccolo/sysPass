@@ -34,7 +34,7 @@ final class Html
     /**
      * Limpia los datos recibidos de un formulario.
      *
-     * @param string $data con los datos a limpiar
+     * @param mixed $data con los datos a limpiar
      *
      * @return false|string con los datos limpiados
      */
@@ -102,7 +102,11 @@ final class Html
      *
      * @link http://www.pjgalbraith.com/truncating-text-html-with-php/
      */
-    public static function truncate($text, $limit, $ellipsis = '...')
+    public static function truncate(
+        string $text,
+        int    $limit,
+        string $ellipsis = '...'
+    ): string
     {
         if (mb_strlen($text) > $limit) {
             return trim(mb_substr($text, 0, $limit)) . $ellipsis;
@@ -116,10 +120,8 @@ final class Html
      * From: http://bavotasan.com/2011/convert-hex-color-to-rgb-using-php/
      *
      * @param array $rgb con color en RGB
-     *
-     * @return string
      */
-    public static function rgb2hex(array $rgb)
+    public static function rgb2hex(array $rgb): string
     {
         $hex = "#";
 
@@ -132,12 +134,8 @@ final class Html
 
     /**
      * Devolver una cadena con el tag HTML strong.
-     *
-     * @param string $text con la cadena de texto
-     *
-     * @return string
      */
-    public static function strongText($text)
+    public static function strongText(string $text): string
     {
         return '<strong>' . $text . '</strong>';
     }
@@ -145,27 +143,34 @@ final class Html
     /**
      * Devolver un link HTML.
      *
-     * @param string $text    con la cadena de texto
-     * @param string $link    con el destino del enlace
-     * @param string $title   con el título del enlace
-     * @param string $attribs con atributos del enlace
+     * @param string      $text    con la cadena de texto
+     * @param string|null $link    con el destino del enlace
+     * @param string|null $title   con el título del enlace
+     * @param string      $attribs con atributos del enlace
      *
      * @return string
      */
-    public static function anchorText($text, $link = null, $title = null, $attribs = '')
+    public static function anchorText(
+        string  $text,
+        ?string $link = null,
+        ?string $title = null,
+        string  $attribs = ''
+    ): string
     {
-        $alink = $link !== null ? $link : $text;
-        $atitle = $title !== null ? $title : $text;
+        $alink = $link ?? $text;
+        $atitle = $title ?? $text;
 
-        return sprintf('<a href="%s" title="%s" %s>%s</a>', $alink, $atitle, $attribs, $text);
+        return sprintf(
+            '<a href="%s" title="%s" %s>%s</a>',
+            $alink,
+            $atitle,
+            $attribs,
+            $text
+        );
     }
 
     /**
      * Strips out HTML tags preserving some spaces
-     *
-     * @param $text
-     *
-     * @return string
      */
     public static function stripTags(string $text): string
     {
@@ -174,7 +179,11 @@ final class Html
         }
 
         // Replace tags, then new lines, tabs and return chars, and then 2 or more spaces
-        return trim(preg_replace(['/<[^>]*>/', '/[\n\t\r]+/', '/\s{2,}/'], ' ', $text));
+        return trim(preg_replace(
+                ['/<[^>]*>/', '/[\n\t\r]+/', '/\s{2,}/'],
+                ' ',
+                $text)
+        );
     }
 
     /**

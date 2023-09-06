@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Plugin;
@@ -28,10 +28,11 @@ use Defuse\Crypto\Exception\CryptoException;
 use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\NoSuchPropertyException;
 use SP\Core\Exceptions\QueryException;
-use SP\Repositories\NoSuchItemException;
-use SP\Repositories\Plugin\PluginDataModel;
-use SP\Services\Plugin\PluginDataService;
-use SP\Services\ServiceException;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\Plugin\Ports\PluginDataServiceInterface;
+use SP\Domain\Plugin\Services\PluginDataService;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
+use SP\Infrastructure\Plugin\Repositories\PluginDataModel;
 
 /**
  * Class PluginOperation
@@ -40,22 +41,19 @@ use SP\Services\ServiceException;
  */
 final class PluginOperation
 {
-    /**
-     * @var PluginDataService
-     */
-    private $pluginDataService;
-    /**
-     * @var string
-     */
-    private $pluginName;
+    private PluginDataService $pluginDataService;
+    private string $pluginName;
 
     /**
      * PluginOperation constructor.
      *
-     * @param PluginDataService $pluginDataService
-     * @param string            $pluginName
+     * @param  PluginDataServiceInterface  $pluginDataService
+     * @param  string  $pluginName
      */
-    public function __construct(PluginDataService $pluginDataService, string $pluginName)
+    public function __construct(
+        \SP\Domain\Plugin\Ports\PluginDataServiceInterface $pluginDataService,
+        string            $pluginName
+    )
     {
         $this->pluginDataService = $pluginDataService;
         $this->pluginName = $pluginName;
@@ -72,7 +70,7 @@ final class PluginOperation
      * @throws QueryException
      * @throws ServiceException
      */
-    public function create(int $itemId, $data)
+    public function create(int $itemId, $data): int
     {
         $itemData = new PluginDataModel();
         $itemData->setName($this->pluginName);
@@ -93,9 +91,9 @@ final class PluginOperation
      * @throws QueryException
      * @throws ServiceException
      */
-    public function update(int $itemId, $data)
+    public function update(int $itemId, $data): int
     {
-        $itemData = new PluginDataModel();
+        $itemData = new \SP\Infrastructure\Plugin\Repositories\PluginDataModel();
         $itemData->setName($this->pluginName);
         $itemData->setItemId($itemId);
         $itemData->setData(serialize($data));
@@ -104,32 +102,28 @@ final class PluginOperation
     }
 
     /**
-     * @param int $itemId
-     *
      * @throws ConstraintException
      * @throws QueryException
      * @throws NoSuchItemException
      */
-    public function delete(int $itemId)
+    public function delete(int $itemId): void
     {
         $this->pluginDataService->deleteByItemId($this->pluginName, $itemId);
     }
 
     /**
-     * @param int         $itemId
-     * @param string|null $class
-     *
-     * @return mixed|null
      * @throws ConstraintException
      * @throws CryptoException
      * @throws NoSuchPropertyException
      * @throws QueryException
      * @throws ServiceException
      */
-    public function get(int $itemId, string $class = null)
+    public function get(int $itemId, ?string $class = null)
     {
         try {
-            return $this->pluginDataService->getByItemId($this->pluginName, $itemId)->hydrate($class);
+            return $this->pluginDataService
+                ->getByItemId($this->pluginName, $itemId)
+                ->hydrate($class);
         } catch (NoSuchItemException $e) {
             return null;
         }

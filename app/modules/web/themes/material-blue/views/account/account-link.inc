@@ -23,17 +23,16 @@
  */
 
 /**
- * @var callable       $_getvar
- * @var ThemeIcons     $icons
- * @var AccountExtData $accountData
- * @var AccountAcl     $accountAcl
- * @var ConfigData     $configData
+ * @var callable                       $_getvar
+ * @var ThemeIcons                     $icons
+ * @var AccountExtData                 $accountData
+ * @var AccountAcl                     $accountAcl
+ * @var \SP\Domain\Config\Ports\ConfigDataInterface $configData
  */
 
-use SP\Config\ConfigData;
 use SP\Core\UI\ThemeIcons;
 use SP\DataModel\AccountExtData;
-use SP\Services\Account\AccountAcl;
+use SP\Domain\Account\Services\AccountAcl;
 
 /** @var AccountExtData $accountData */
 $accountData = $_getvar('accountData');
@@ -155,7 +154,6 @@ $accountData = $_getvar('accountData');
                                 class="clip-pass-icon mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored mdl-color--indigo-A200"
                                 data-clipboard-target="#password"
                                 data-item-id="<?php echo $accountData->getId(); ?>"
-                                data-sk="<?php echo $_getvar('sk'); ?>"
                                 data-history="0"
                                 data-onclick="account/copypass">
                             <i class="material-icons">content_paste</i>

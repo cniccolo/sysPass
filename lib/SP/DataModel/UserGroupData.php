@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,10 +19,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\DataModel;
+
+use SP\Domain\Common\Adapters\DataModelInterface;
+use SP\Domain\Common\Models\Model;
 
 defined('APP_ROOT') || die();
 
@@ -31,86 +34,50 @@ defined('APP_ROOT') || die();
  *
  * @package SP\DataModel
  */
-class UserGroupData extends DataModelBase implements DataModelInterface
+class UserGroupData extends Model implements DataModelInterface
 {
-    /**
-     * @var int
-     */
-    public $id = 0;
-    /**
-     * @var string
-     */
-    public $name;
-    /**
-     * @var string
-     */
-    public $description;
-    /**
-     * @var array
-     */
-    public $users;
+    public int     $id          = 0;
+    public ?string $name        = null;
+    public ?string $description = null;
+    public ?array  $users       = null;
 
-    /**
-     * @return int
-     */
-    public function getId()
+    public function getId(): int
     {
-        return (int)$this->id;
+        return $this->id;
     }
 
-    /**
-     * @param int $id
-     */
-    public function setId($id)
+    public function setId(int $id): void
     {
-        $this->id = (int)$id;
+        $this->id = $id;
     }
 
-    /**
-     * @return string
-     */
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-    /**
-     * @return string
-     */
-    public function getDescription()
-    {
-        return $this->description;
-    }
-
-    /**
-     * @return array
-     */
-    public function getUsers()
-    {
-        return $this->users;
-    }
-
-    /**
-     * @param array $users
-     */
-    public function setUsers($users)
-    {
-        $this->users = $users;
-    }
-
-    /**
-     * @param string $name
-     */
-    public function setName($name)
+    public function setName(string $name): void
     {
         $this->name = $name;
     }
 
-    /**
-     * @param string $description
-     */
-    public function setDescription($description)
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): void
     {
         $this->description = $description;
+    }
+
+    public function getUsers(): ?array
+    {
+        return $this->users;
+    }
+
+    public function setUsers(?array $users): void
+    {
+        $this->users = $users;
     }
 }

@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Import;
@@ -34,18 +34,17 @@ use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
 use SP\DataModel\AccountSearchVData;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\Account\AccountSearchFilter;
-use SP\Services\Account\AccountService;
-use SP\Services\Category\CategoryService;
-use SP\Services\Client\ClientService;
-use SP\Services\Import\FileImport;
-use SP\Services\Import\ImportException;
-use SP\Services\Import\ImportParams;
-use SP\Services\Import\KeepassImport;
-use SP\Services\Import\XmlFileImport;
-use SP\Storage\Database\DatabaseConnectionData;
-use SP\Storage\File\FileException;
+use SP\Domain\Account\Search\AccountSearchFilter;
+use SP\Domain\Account\Services\AccountService;
+use SP\Domain\Category\Services\CategoryService;
+use SP\Domain\Client\Services\ClientService;
+use SP\Domain\Import\Services\FileImport;
+use SP\Domain\Import\Services\ImportException;
+use SP\Domain\Import\Services\ImportParams;
+use SP\Domain\Import\Services\KeepassImport;
+use SP\Domain\Import\Services\XmlFileImport;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
+use SP\Infrastructure\File\FileException;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -62,18 +61,13 @@ class KeepassImportTest extends DatabaseTestCase
     protected static $dic;
 
     /**
-     * @throws NotFoundException
      * @throws ContextException
-     * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$dic = setupContext();
 
-        self::$dataset = 'syspass_import.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = self::$dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
     }
 
     /**
@@ -89,7 +83,7 @@ class KeepassImportTest extends DatabaseTestCase
      */
     public function testDoImport()
     {
-        $file = RESOURCE_DIR . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_keepass.xml';
+        $file = RESOURCE_PATH . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_keepass.xml';
 
         $params = new ImportParams();
         $params->setDefaultUser(1);
@@ -120,14 +114,14 @@ class KeepassImportTest extends DatabaseTestCase
         $this->assertEquals('Servers', $categoryService->getByName('Servers')->getName());
         $this->assertEquals('General', $categoryService->getByName('General')->getName());
 
-        $this->assertEquals(11, $this->conn->getRowCount('Category'));
+        $this->assertEquals(11, self::getRowCount('Category'));
 
         // Checkout clients
         $client = self::$dic->get(ClientService::class)->getByName('KeePass');
 
         $this->assertEquals('KeePass', $client->getName());
 
-        $this->assertEquals(4, $this->conn->getRowCount('Client'));
+        $this->assertEquals(5, self::getRowCount('Client'));
 
         // Checkout accounts
         $accountService = self::$dic->get(AccountService::class);
@@ -141,7 +135,7 @@ class KeepassImportTest extends DatabaseTestCase
 
         $this->assertCount(5, $data);
 
-        $this->assertEquals(3, $data[0]->getId());
+        $this->assertEquals(5, $data[0]->getId());
         $this->assertEquals(1, $data[0]->getUserId());
         $this->assertEquals(2, $data[0]->getUserGroupId());
         $this->assertEquals('DC1', $data[0]->getName());
@@ -157,7 +151,7 @@ class KeepassImportTest extends DatabaseTestCase
 
         // 2nd account
 
-        $this->assertEquals(4, $data[1]->getId());
+        $this->assertEquals(6, $data[1]->getId());
         $this->assertEquals(1, $data[1]->getUserId());
         $this->assertEquals(2, $data[1]->getUserGroupId());
         $this->assertEquals('debian', $data[1]->getName());
@@ -172,7 +166,7 @@ class KeepassImportTest extends DatabaseTestCase
         $this->assertEquals('TKr321zqCZhgbzmmAX13', Crypt::decrypt($pass->getPass(), $pass->getKey(), '12345678900'));
 
         // 3rd account
-        $this->assertEquals(5, $data[2]->getId());
+        $this->assertEquals(7, $data[2]->getId());
         $this->assertEquals(1, $data[2]->getUserId());
         $this->assertEquals(2, $data[2]->getUserGroupId());
         $this->assertEquals('proxy', $data[2]->getName());
@@ -186,18 +180,18 @@ class KeepassImportTest extends DatabaseTestCase
 
         $this->assertEquals('TKr321zqCZhgbzmmAX13', Crypt::decrypt($pass->getPass(), $pass->getKey(), '12345678900'));
 
-        $this->assertEquals(6, $data[3]->getId());
+        $this->assertEquals(8, $data[3]->getId());
         $this->assertEquals(1, $data[3]->getUserId());
         $this->assertEquals(2, $data[3]->getUserGroupId());
         $this->assertEquals('Sample Entry', $data[3]->getName());
         $this->assertEquals('NewDatabase', $data[3]->getCategoryName());
 
-        $this->assertEquals(7, $data[4]->getId());
+        $this->assertEquals(9, $data[4]->getId());
         $this->assertEquals(1, $data[4]->getUserId());
         $this->assertEquals(2, $data[4]->getUserGroupId());
         $this->assertEquals('Sample Entry #2', $data[4]->getName());
         $this->assertEquals('NewDatabase', $data[4]->getCategoryName());
 
-        $this->assertEquals(7, $this->conn->getRowCount('Account'));
+        $this->assertEquals(9, self::getRowCount('Account'));
     }
 }

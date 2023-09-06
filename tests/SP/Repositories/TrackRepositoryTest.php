@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Repositories;
@@ -31,9 +31,9 @@ use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\InvalidArgumentException;
 use SP\Core\Exceptions\QueryException;
 use SP\DataModel\TrackData;
-use SP\Repositories\Track\TrackRepository;
-use SP\Repositories\Track\TrackRequest;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Security\Ports\TrackRepositoryInterface;
+use SP\Infrastructure\Security\Repositories\TrackRepository;
+use SP\Infrastructure\Security\Repositories\TrackRequest;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -45,7 +45,7 @@ use function SP\Tests\setupContext;
 class TrackRepositoryTest extends DatabaseTestCase
 {
     /**
-     * @var TrackRepository
+     * @var TrackRepositoryInterface
      */
     private static $repository;
 
@@ -54,14 +54,11 @@ class TrackRepositoryTest extends DatabaseTestCase
      * @throws NotFoundException
      * @throws ContextException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_track.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(TrackRepository::class);
@@ -75,7 +72,7 @@ class TrackRepositoryTest extends DatabaseTestCase
     {
         $this->assertEquals(1, self::$repository->delete(1));
 
-        $this->assertEquals(5, $this->conn->getRowCount('Track'));
+        $this->assertEquals(5, self::getRowCount('Track'));
 
         $this->assertEquals(0, self::$repository->delete(10));
     }
@@ -109,11 +106,8 @@ class TrackRepositoryTest extends DatabaseTestCase
      */
     public function testAdd()
     {
-        $data = new TrackRequest();
+        $data = new TrackRequest(time(), __METHOD__, 1);
         $data->setTrackIp('192.168.0.1');
-        $data->userId = 1;
-        $data->time = time();
-        $data->source = __METHOD__;
 
         $this->assertEquals(7, self::$repository->add($data));
 
@@ -157,10 +151,8 @@ class TrackRepositoryTest extends DatabaseTestCase
      */
     public function testGetTracksForClientFromTime()
     {
-        $data = new TrackRequest();
+        $data = new TrackRequest(1529272367, 'login');
         $data->setTrackIp('172.22.0.1');
-        $data->time = 1529272367;
-        $data->source = 'login';
 
         $result = self::$repository->getTracksForClientFromTime($data);
         /** @var TrackData[] $resultData */

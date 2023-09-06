@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Tag;
@@ -32,11 +32,10 @@ use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
 use SP\DataModel\ItemSearchData;
 use SP\DataModel\TagData;
-use SP\Repositories\DuplicatedItemException;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\ServiceException;
-use SP\Services\Tag\TagService;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\Tag\Services\TagService;
+use SP\Infrastructure\Common\Repositories\DuplicatedItemException;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use stdClass;
 use function SP\Tests\setupContext;
@@ -49,7 +48,7 @@ use function SP\Tests\setupContext;
 class TagServiceTest extends DatabaseTestCase
 {
     /**
-     * @var TagService
+     * @var \SP\Domain\Tag\Ports\TagServiceInterface
      */
     private static $service;
 
@@ -58,14 +57,11 @@ class TagServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_tag.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
         self::$service = $dic->get(TagService::class);
@@ -78,7 +74,7 @@ class TagServiceTest extends DatabaseTestCase
     {
         self::$service->deleteByIdBatch([1, 2, 3]);
 
-        $this->assertEquals(0, $this->conn->getRowCount('Tag'));
+        $this->assertEquals(0, self::getRowCount('Tag'));
 
         $this->expectException(ServiceException::class);
 
@@ -96,7 +92,7 @@ class TagServiceTest extends DatabaseTestCase
 
         self::$service->delete(2);
 
-        $this->assertEquals(1, $this->conn->getRowCount('Tag'));
+        $this->assertEquals(1, self::getRowCount('Tag'));
 
         $this->expectException(NoSuchItemException::class);
 
@@ -218,7 +214,7 @@ class TagServiceTest extends DatabaseTestCase
 
         $this->assertEquals($tagData->name, $data->getName());
 
-        $this->assertEquals(4, $this->conn->getRowCount('Tag'));
+        $this->assertEquals(4, self::getRowCount('Tag'));
     }
 
     /**

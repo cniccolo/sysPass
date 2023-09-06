@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,10 +19,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace SP\Tests\SP\Services\UserProfile;
+namespace SP\Tests\Services\UserProfile;
 
 use DI\DependencyException;
 use DI\NotFoundException;
@@ -33,11 +33,10 @@ use SP\Core\Exceptions\SPException;
 use SP\DataModel\ItemSearchData;
 use SP\DataModel\ProfileData;
 use SP\DataModel\UserProfileData;
-use SP\Repositories\DuplicatedItemException;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\ServiceException;
-use SP\Services\UserProfile\UserProfileService;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\User\Ports\UserProfileServiceInterface;
+use SP\Infrastructure\Common\Repositories\DuplicatedItemException;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use stdClass;
 use function SP\Tests\setupContext;
@@ -45,12 +44,12 @@ use function SP\Tests\setupContext;
 /**
  * Class UserProfileServiceTest
  *
- * @package SP\Tests\SP\Services\UserProfile
+ * @package SP\Tests\SP\Domain\Common\Services\UserProfile
  */
 class UserProfileServiceTest extends DatabaseTestCase
 {
     /**
-     * @var UserProfileService
+     * @var \SP\Domain\User\Ports\UserProfileServiceInterface
      */
     private static $service;
 
@@ -60,17 +59,14 @@ class UserProfileServiceTest extends DatabaseTestCase
      * @throws DependencyException
      * @throws SPException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
-        self::$service = $dic->get(UserProfileService::class);
+        self::$service = $dic->get(\SP\Domain\User\Services\UserProfileService::class);
     }
 
     /**
@@ -188,7 +184,7 @@ class UserProfileServiceTest extends DatabaseTestCase
     {
         $this->assertEquals(1, self::$service->deleteByIdBatch([3]));
 
-        $this->assertEquals(2, $this->conn->getRowCount('UserProfile'));
+        $this->assertEquals(2, self::getRowCount('UserProfile'));
     }
 
     /**
@@ -202,7 +198,7 @@ class UserProfileServiceTest extends DatabaseTestCase
 
         self::$service->deleteByIdBatch([1, 2]);
 
-        $this->assertEquals(3, $this->conn->getRowCount('UserProfile'));
+        $this->assertEquals(3, self::getRowCount('UserProfile'));
     }
 
     /**
@@ -216,7 +212,7 @@ class UserProfileServiceTest extends DatabaseTestCase
 
         self::$service->deleteByIdBatch([3, 10]);
 
-        $this->assertEquals(2, $this->conn->getRowCount('UserProfile'));
+        $this->assertEquals(2, self::getRowCount('UserProfile'));
     }
 
     /**
@@ -245,7 +241,7 @@ class UserProfileServiceTest extends DatabaseTestCase
     {
         self::$service->delete(3);
 
-        $this->assertEquals(2, $this->conn->getRowCount('UserProfile'));
+        $this->assertEquals(2, self::getRowCount('UserProfile'));
 
         $this->expectException(ConstraintException::class);
 
@@ -271,7 +267,7 @@ class UserProfileServiceTest extends DatabaseTestCase
 
         $this->assertEquals($data->getId(), $result);
 
-        $this->assertEquals(4, $this->conn->getRowCount('UserProfile'));
+        $this->assertEquals(4, self::getRowCount('UserProfile'));
 
         $this->assertEquals($data, self::$service->getById($result));
     }

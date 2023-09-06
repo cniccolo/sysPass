@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,10 +19,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace SP\Tests\SP\Services\UserGroup;
+namespace SP\Tests\Services\UserGroup;
 
 use DI\DependencyException;
 use DI\NotFoundException;
@@ -31,22 +31,22 @@ use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
 use SP\DataModel\UserToUserGroupData;
-use SP\Repositories\NoSuchItemException;
-use SP\Services\UserGroup\UserToUserGroupService;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\User\Ports\UserToUserGroupServiceInterface;
+use SP\Domain\User\Services\UserToUserGroupService;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
 /**
  * Class UserToUserGroupServiceTest
  *
- * @package SP\Tests\SP\Services\UserGroup
+ * @package SP\Tests\SP\Domain\Common\Services\UserGroup
  */
 class UserToUserGroupServiceTest extends DatabaseTestCase
 {
 
     /**
-     * @var UserToUserGroupService
+     * @var \SP\Domain\User\Ports\UserToUserGroupServiceInterface
      */
     private static $service;
 
@@ -56,14 +56,11 @@ class UserToUserGroupServiceTest extends DatabaseTestCase
      * @throws DependencyException
      * @throws SPException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_userGroup.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
         self::$service = $dic->get(UserToUserGroupService::class);
@@ -95,9 +92,8 @@ class UserToUserGroupServiceTest extends DatabaseTestCase
 
         $data = self::$service->getGroupsForUser(2);
 
-        $this->assertCount(2, $data);
+        $this->assertCount(1, $data);
         $this->assertEquals(1, $data[0]->userGroupId);
-        $this->assertEquals(3, $data[1]->userGroupId);
 
         $data = self::$service->getGroupsForUser(10);
 
@@ -170,11 +166,11 @@ class UserToUserGroupServiceTest extends DatabaseTestCase
         $this->assertEquals(2, $data[1]->getUserGroupId());
         $this->assertEquals(3, $data[1]->getUserId());
 
-        $data = self::$service->getById(3);
+        $data = self::$service->getById(1);
 
         $this->assertCount(1, $data);
 
-        $this->assertEquals(3, $data[0]->getUserGroupId());
+        $this->assertEquals(1, $data[0]->getUserGroupId());
         $this->assertEquals(2, $data[0]->getUserId());
 
         $this->expectException(NoSuchItemException::class);

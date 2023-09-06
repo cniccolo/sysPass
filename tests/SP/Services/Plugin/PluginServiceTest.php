@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Services\Plugin;
@@ -32,11 +32,11 @@ use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
 use SP\DataModel\ItemData;
 use SP\DataModel\ItemSearchData;
-use SP\Repositories\NoSuchItemException;
-use SP\Repositories\Plugin\PluginModel;
-use SP\Services\Plugin\PluginService;
-use SP\Services\ServiceException;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Common\Services\ServiceException;
+use SP\Domain\Plugin\Ports\PluginServiceInterface;
+use SP\Domain\Plugin\Services\PluginService;
+use SP\Infrastructure\Common\Repositories\NoSuchItemException;
+use SP\Infrastructure\Plugin\Repositories\PluginModel;
 use SP\Tests\DatabaseTestCase;
 use function SP\Tests\setupContext;
 
@@ -48,7 +48,7 @@ use function SP\Tests\setupContext;
 class PluginServiceTest extends DatabaseTestCase
 {
     /**
-     * @var PluginService
+     * @var \SP\Domain\Plugin\Ports\PluginServiceInterface
      */
     private static $service;
 
@@ -57,14 +57,11 @@ class PluginServiceTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_plugin.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el servicio
         self::$service = $dic->get(PluginService::class);
@@ -112,7 +109,7 @@ class PluginServiceTest extends DatabaseTestCase
     {
         self::$service->deleteByIdBatch([1, 2]);
 
-        $this->assertEquals(1, $this->conn->getRowCount('Plugin'));
+        $this->assertEquals(1, self::getRowCount('Plugin'));
 
         $this->expectException(ServiceException::class);
 
@@ -126,7 +123,7 @@ class PluginServiceTest extends DatabaseTestCase
      */
     public function testToggleAvailable()
     {
-        self::$service->toggleAvailable(1, 0);
+        self::$service->toggleAvailable(1, false);
 
         $data = self::$service->getById(1);
 
@@ -134,7 +131,7 @@ class PluginServiceTest extends DatabaseTestCase
 
         $this->expectException(NoSuchItemException::class);
 
-        self::$service->toggleAvailable(4, 1);
+        self::$service->toggleAvailable(4, true);
     }
 
     /**
@@ -185,7 +182,7 @@ class PluginServiceTest extends DatabaseTestCase
     {
         self::$service->delete(1);
 
-        $this->assertEquals(2, $this->conn->getRowCount('Plugin'));
+        $this->assertEquals(2, self::getRowCount('Plugin'));
 
         $this->expectException(NoSuchItemException::class);
 
@@ -324,7 +321,7 @@ class PluginServiceTest extends DatabaseTestCase
      */
     public function testToggleEnabledByName()
     {
-        self::$service->toggleEnabledByName('Authenticator', 1);
+        self::$service->toggleEnabledByName('Authenticator', true);
 
         $data = self::$service->getByName('Authenticator');
 
@@ -332,7 +329,7 @@ class PluginServiceTest extends DatabaseTestCase
 
         $this->expectException(NoSuchItemException::class);
 
-        self::$service->toggleEnabledByName('Test', 0);
+        self::$service->toggleEnabledByName('Test', false);
     }
 
     /**
@@ -342,7 +339,7 @@ class PluginServiceTest extends DatabaseTestCase
      */
     public function testToggleAvailableByName()
     {
-        self::$service->toggleAvailableByName('Authenticator', 0);
+        self::$service->toggleAvailableByName('Authenticator', false);
 
         $data = self::$service->getByName('Authenticator');
 
@@ -350,7 +347,7 @@ class PluginServiceTest extends DatabaseTestCase
 
         $this->expectException(NoSuchItemException::class);
 
-        self::$service->toggleAvailableByName('Authenticator 2', 1);
+        self::$service->toggleAvailableByName('Authenticator 2', true);
     }
 
     /**
@@ -376,7 +373,7 @@ class PluginServiceTest extends DatabaseTestCase
      */
     public function testToggleEnabled()
     {
-        self::$service->toggleEnabled(1, 1);
+        self::$service->toggleEnabled(1, true);
 
         $data = self::$service->getById(1);
 
@@ -384,6 +381,6 @@ class PluginServiceTest extends DatabaseTestCase
 
         $this->expectException(NoSuchItemException::class);
 
-        self::$service->toggleEnabled(4, 0);
+        self::$service->toggleEnabled(4, false);
     }
 }

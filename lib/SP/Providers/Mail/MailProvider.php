@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,17 +19,17 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Providers\Mail;
 
-use DI\Container;
-use DI\DependencyException;
-use DI\NotFoundException;
 use Exception;
-use PHPMailer\PHPMailer\PHPMailer;
 use SP\Core\AppInfoInterface;
+use SP\Core\Application;
+use SP\Core\Exceptions\SPException;
+use SP\Domain\Providers\MailerInterface;
+use SP\Domain\Providers\MailProviderInterface;
 use SP\Providers\Provider;
 
 /**
@@ -37,54 +37,55 @@ use SP\Providers\Provider;
  *
  * @package SP\Providers\Mail
  */
-final class MailProvider extends Provider
+final class MailProvider extends Provider implements MailProviderInterface
 {
     /**
-     * @var  PHPMailer
+     * @var \SP\Domain\Providers\MailerInterface | \SP\Providers\Mail\PhpMailerWrapper
      */
-    private $mailer;
-    /**
-     * @var bool
-     */
-    private $debug = false;
+    private MailerInterface $mailer;
+    private bool            $debug = false;
+
+    public function __construct(
+        Application $application,
+        MailerInterface $mailer
+    ) {
+        parent::__construct($application);
+
+        $this->mailer = $mailer;
+    }
 
     /**
      * Inicializar la clase PHPMailer.
      *
-     * @param MailParams $mailParams
-     *
-     * @return PHPMailer
      * @throws MailProviderException
      */
-    public function getMailer(MailParams $mailParams)
+    public function getMailerFrom(MailParams $mailParams): MailerInterface
     {
         $appName = AppInfoInterface::APP_NAME;
+        $mailer = $this->mailer->getMailer();
 
         try {
-            $this->mailer->SMTPAutoTLS = false;
-            $this->mailer->isSMTP();
-            $this->mailer->CharSet = 'utf-8';
-            $this->mailer->Host = $mailParams->server;
-            $this->mailer->Port = $mailParams->port;
+            $mailer->set('SMTPAutoTLS', false);
+            $mailer->isSMTP();
+            $mailer->set('CharSet', 'utf-8');
+            $mailer->set('Host', $mailParams->server);
+            $mailer->set('Port', $mailParams->port);
+            $mailer->set('SMTPSecure', strtolower($mailParams->security));
 
             if ($mailParams->mailAuthenabled) {
-                $this->mailer->SMTPAuth = true;
-                $this->mailer->Username = $mailParams->user;
-                $this->mailer->Password = $mailParams->pass;
+                $mailer->set('SMTPAuth', true);
+                $mailer->set('Username', $mailParams->user);
+                $mailer->set('Password', $mailParams->pass);
             }
-
-            $this->mailer->SMTPSecure = strtolower($mailParams->security);
 
             if ($this->debug) {
-                $this->mailer->SMTPDebug = 2;
-                $this->mailer->Debugoutput = function ($str, $level) {
-                    logger($str, strtoupper($level));
-                };
+                $mailer->set('SMTPDebug', 2);
+                $mailer->set('Debugoutput', static fn($str, $level) => logger($str, strtoupper($level)));
             }
 
-            $this->mailer->setFrom($mailParams->from, $appName);
-            $this->mailer->addReplyTo($mailParams->from, $appName);
-            $this->mailer->WordWrap = 100;
+            $mailer->setFrom($mailParams->from, $appName);
+            $mailer->addReplyTo($mailParams->from, $appName);
+            $mailer->set('WordWrap', 100);
 
             return $this->mailer;
         } catch (Exception $e) {
@@ -92,7 +93,7 @@ final class MailProvider extends Provider
 
             throw new MailProviderException(
                 __u('Unable to initialize'),
-                MailProviderException::ERROR,
+                SPException::ERROR,
                 $e->getMessage(),
                 $e->getCode(),
                 $e
@@ -103,27 +104,21 @@ final class MailProvider extends Provider
     /**
      * @return bool
      */
-    public function isDebug()
+    public function isDebug(): bool
     {
         return $this->debug;
     }
 
     /**
-     * @param bool $debug
+     * @param  bool  $debug
      */
-    public function setDebug($debug)
+    public function setDebug(bool $debug): void
     {
-        $this->debug = (bool)$debug;
+        $this->debug = $debug;
     }
 
-    /**
-     * @param Container $dic
-     *
-     * @throws DependencyException
-     * @throws NotFoundException
-     */
-    protected function initialize(Container $dic)
+    public function initialize(): void
     {
-        $this->mailer = $dic->get(PHPMailer::class);
+        // TODO: Implement initialize() method.
     }
 }

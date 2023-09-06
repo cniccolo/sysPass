@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2021, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,14 +19,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Html\DataGrid;
 
 defined('APP_ROOT') || die();
 
-use SP\Core\Acl\ActionsInterface;
 use SP\Html\DataGrid\Action\DataGridActionInterface;
 use SP\Html\DataGrid\Layout\DataGridHeaderInterface;
 use SP\Html\DataGrid\Layout\DataGridPagerInterface;
@@ -41,12 +40,12 @@ interface DataGridInterface
     /**
      * @param $id string
      */
-    public function setId($id);
+    public function setId(string $id);
 
     /**
      * @return string
      */
-    public function getId();
+    public function getId(): string;
 
     /**
      * @param DataGridHeaderInterface $header
@@ -56,7 +55,7 @@ interface DataGridInterface
     /**
      * @return DataGridHeaderInterface
      */
-    public function getHeader();
+    public function getHeader(): DataGridHeaderInterface;
 
     /**
      * @param DataGridDataInterface $data
@@ -74,12 +73,12 @@ interface DataGridInterface
      *
      * @return $this
      */
-    public function addDataAction(DataGridActionInterface $action, $isMenu = false);
+    public function addDataAction(DataGridActionInterface $action, $isMenu = false): DataGridInterface;
 
     /**
-     * @return DataGridActionInterface
+     * @return DataGridActionInterface[]
      */
-    public function getDataActions();
+    public function getDataActions(): array;
 
     /**
      * @return mixed
@@ -96,77 +95,77 @@ interface DataGridInterface
     /**
      * Devolver el paginador
      *
-     * @return DataGridPagerInterface
+     * @return DataGridPagerInterface|null
      */
-    public function getPager();
+    public function getPager(): ?DataGridPagerInterface;
 
     /**
-     * @param ActionsInterface $action
+     * @param int $action
      */
-    public function setOnCloseAction(ActionsInterface $action);
+    public function setOnCloseAction(int $action);
 
     /**
      * Establecer la plantilla utilizada para la cabecera
      *
      * @param string $template El nombre de la plantilla a utilizar
      */
-    public function setDataHeaderTemplate($template);
+    public function setDataHeaderTemplate(string $template);
 
     /**
      * Devolver la plantilla utilizada para la cabecera
      *
      * @return string
      */
-    public function getDataHeaderTemplate();
+    public function getDataHeaderTemplate(): string;
 
     /**
      * Establecer la plantilla utilizada para las acciones
      *
      * @param string $template El nombre de la plantilla a utilizar
      */
-    public function setDataActionsTemplate($template);
+    public function setDataActionsTemplate(string $template);
 
     /**
      * Devolver la plantilla utilizada para las acciones
      *
-     * @return string
+     * @return string|null
      */
-    public function getDataActionsTemplate();
+    public function getDataActionsTemplate(): ?string;
 
     /**
      * Establecer la plantilla utilizada para el paginador
      *
      * @param string $template El nombre de la plantilla a utilizar
      */
-    public function setDataPagerTemplate($template);
+    public function setDataPagerTemplate(string $template);
 
     /**
      * Devolver la plantilla utilizada para el paginador
      *
-     * @return string
+     * @return string|null
      */
-    public function getDataPagerTemplate();
+    public function getDataPagerTemplate(): ?string;
 
     /**
      * Establcer la plantilla utilizada para los datos de la consulta
      *
      * @param string $template El nombre de la plantilla a utilizar
      */
-    public function setDataRowTemplate($template);
+    public function setDataRowTemplate(string $template);
 
     /**
      * Devolver la plantilla utilizada para los datos de la consulta
      *
-     * @return string
+     * @return string|null
      */
-    public function getDataRowTemplate();
+    public function getDataRowTemplate(): ?string;
 
     /**
      * Devuelve el tiempo total de carga del DataGrid
      *
      * @return int
      */
-    public function getTime();
+    public function getTime(): int;
 
     /**
      * Establece el tiempo total de carga del DataGrid
@@ -180,7 +179,7 @@ interface DataGridInterface
      *
      * @return DataGridActionInterface[]
      */
-    public function getDataActionsMenu();
+    public function getDataActionsMenu(): array;
 
     /**
      * Devolver las acciones filtradas
@@ -189,7 +188,7 @@ interface DataGridInterface
      *
      * @return DataGridActionInterface[]
      */
-    public function getDataActionsFiltered($filter);
+    public function getDataActionsFiltered($filter): array;
 
     /**
      * Devolver las acciones de menu filtradas
@@ -198,12 +197,12 @@ interface DataGridInterface
      *
      * @return DataGridActionInterface[]
      */
-    public function getDataActionsMenuFiltered($filter);
+    public function getDataActionsMenuFiltered($filter): array;
 
     /**
      * Actualizar los datos del paginador
      *
      * @return static
      */
-    public function updatePager();
+    public function updatePager(): DataGridInterface;
 }

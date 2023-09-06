@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Repositories;
@@ -33,9 +33,9 @@ use SP\Core\Exceptions\SPException;
 use SP\DataModel\ItemSearchData;
 use SP\DataModel\ProfileData;
 use SP\DataModel\UserProfileData;
-use SP\Repositories\DuplicatedItemException;
-use SP\Repositories\UserProfile\UserProfileRepository;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\User\Ports\UserProfileRepositoryInterface;
+use SP\Infrastructure\Common\Repositories\DuplicatedItemException;
+use SP\Infrastructure\User\Repositories\UserProfileRepository;
 use SP\Tests\DatabaseTestCase;
 use stdClass;
 use function SP\Tests\setupContext;
@@ -50,7 +50,7 @@ use function SP\Tests\setupContext;
 class UserProfileRepositoryTest extends DatabaseTestCase
 {
     /**
-     * @var UserProfileRepository
+     * @var UserProfileRepositoryInterface
      */
     private static $repository;
 
@@ -59,14 +59,11 @@ class UserProfileRepositoryTest extends DatabaseTestCase
      * @throws NotFoundException
      * @throws ContextException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(UserProfileRepository::class);
@@ -159,7 +156,7 @@ class UserProfileRepositoryTest extends DatabaseTestCase
         $result = self::$repository->delete(3);
 
         $this->assertEquals(1, $result);
-        $this->assertEquals(2, $this->conn->getRowCount('UserProfile'));
+        $this->assertEquals(2, self::getRowCount('UserProfile'));
 
         $this->expectException(ConstraintException::class);
 
@@ -201,7 +198,7 @@ class UserProfileRepositoryTest extends DatabaseTestCase
         $result = self::$repository->create($data);
 
         $this->assertEquals($data->getId(), $result);
-        $this->assertEquals(4, $this->conn->getRowCount('UserProfile'));
+        $this->assertEquals(4, self::getRowCount('UserProfile'));
 
         /** @var UserProfileData $resultData */
         $resultData = self::$repository->getById($result)->getData();
@@ -268,7 +265,7 @@ class UserProfileRepositoryTest extends DatabaseTestCase
      */
     public function testGetByIdBatch()
     {
-        $profiles = self::$repository->getByIdBatch([1, 2, 5]);
+        $profiles = self::$repository->getByIdBatch([1, 2, 5])->getDataAsArray();
 
         $this->assertCount(2, $profiles);
         $this->assertInstanceOf(UserProfileData::class, $profiles[0]);

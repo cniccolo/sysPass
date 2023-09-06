@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2023, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Repositories;
@@ -29,10 +29,9 @@ use DI\NotFoundException;
 use SP\Core\Context\ContextException;
 use SP\Core\Exceptions\ConstraintException;
 use SP\Core\Exceptions\QueryException;
-use SP\DataModel\ItemPresetData;
 use SP\DataModel\ItemSearchData;
-use SP\Repositories\ItemPreset\ItemPresetRepository;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Account\Models\ItemPreset;
+use SP\Infrastructure\ItemPreset\Repositories\ItemPresetRepository;
 use SP\Tests\DatabaseTestCase;
 use stdClass;
 use function SP\Tests\setupContext;
@@ -45,7 +44,7 @@ use function SP\Tests\setupContext;
 class ItemPresetRepositoryTest extends DatabaseTestCase
 {
     /**
-     * @var ItemPresetRepository
+     * @var \SP\Domain\ItemPreset\Ports\ItemPresetRepositoryInterface
      */
     private static $repository;
 
@@ -54,17 +53,28 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
      * @throws NotFoundException
      * @throws ContextException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass_itemPreset.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(ItemPresetRepository::class);
+    }
+
+    public static function userDataProvider(): array
+    {
+        return [
+            [1, 1, 1, 3],
+            [1, 2, 2, 1],
+            [1, 1, 3, 2],
+            [2, 2, 2, 2],
+            [2, 2, 3, 2],
+            [2, 1, 3, 2],
+            [3, 1, 1, 3],
+            [3, 1, 2, 2],
+        ];
     }
 
     /**
@@ -75,7 +85,7 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
     {
         $this->assertEquals(3, self::$repository->deleteByIdBatch([1, 2, 3, 10]));
 
-        $this->assertEquals(2, $this->conn->getRowCount('ItemPreset'));
+        $this->assertEquals(2, self::getRowCount('ItemPreset'));
 
         $this->assertEquals(0, self::$repository->deleteByIdBatch([]));
     }
@@ -92,7 +102,7 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
 
         $this->assertEquals(0, self::$repository->delete(10));
 
-        $this->assertEquals(3, $this->conn->getRowCount('ItemPreset'));
+        $this->assertEquals(3, self::getRowCount('ItemPreset'));
     }
 
     /**
@@ -112,7 +122,7 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
      */
     public function testUpdate()
     {
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->id = 1;
         $data->userGroupId = 1;
         $data->fixed = 1;
@@ -133,7 +143,7 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
     {
         $this->expectException(ConstraintException::class);
 
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->id = 1;
         $data->userGroupId = 1;
         $data->fixed = 1;
@@ -152,7 +162,7 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
     {
         $this->expectException(ConstraintException::class);
 
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->id = 2;
         $data->userId = 10;
         $data->fixed = 1;
@@ -171,7 +181,7 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
     {
         $this->expectException(ConstraintException::class);
 
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->id = 2;
         $data->userGroupId = 10;
         $data->fixed = 1;
@@ -190,7 +200,7 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
     {
         $this->expectException(ConstraintException::class);
 
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->id = 2;
         $data->userProfileId = 10;
         $data->fixed = 1;
@@ -207,7 +217,7 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
      */
     public function testUpdateUnknownId()
     {
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->id = 10;
         $data->userGroupId = 1;
         $data->fixed = 1;
@@ -226,7 +236,7 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
      */
     public function testGetById()
     {
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->id = 1;
         $data->userId = 1;
         $data->fixed = 0;
@@ -245,16 +255,16 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
      */
     public function testGetAll()
     {
-        $count = $this->conn->getRowCount('ItemPreset');
+        $count = self::getRowCount('ItemPreset');
 
         $result = self::$repository->getAll();
         $this->assertEquals($count, $result->getNumRows());
 
-        /** @var ItemPresetData[] $data */
+        /** @var ItemPreset[] $data */
         $data = $result->getDataAsArray();
         $this->assertCount($count, $data);
 
-        $this->assertInstanceOf(ItemPresetData::class, $data[0]);
+        $this->assertInstanceOf(ItemPreset::class, $data[0]);
         $this->assertEquals(1, $data[0]->getId());
         $this->assertEquals('permission', $data[0]->getType());
         $this->assertEquals(1, $data[0]->getUserId());
@@ -264,11 +274,11 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
         $this->assertEquals(0, $data[0]->getFixed());
         $this->assertEquals(0, $data[0]->getPriority());
 
-        $this->assertInstanceOf(ItemPresetData::class, $data[1]);
+        $this->assertInstanceOf(ItemPreset::class, $data[1]);
         $this->assertEquals(2, $data[1]->getId());
         $this->assertEquals('permission', $data[1]->getType());
 
-        $this->assertInstanceOf(ItemPresetData::class, $data[2]);
+        $this->assertInstanceOf(ItemPreset::class, $data[2]);
         $this->assertEquals(3, $data[2]->getId());
         $this->assertEquals('permission', $data[2]->getType());
     }
@@ -360,7 +370,7 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
      */
     public function testCreate()
     {
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->id = 6;
         $data->userGroupId = 1;
         $data->fixed = 1;
@@ -382,7 +392,7 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
     {
         $this->expectException(ConstraintException::class);
 
-        $data = new ItemPresetData();
+        $data = new ItemPreset();
         $data->userGroupId = 1;
         $data->fixed = 1;
         $data->priority = 10;
@@ -395,10 +405,10 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
     /**
      * @dataProvider userDataProvider
      *
-     * @param int $userId
-     * @param int $userGroupId
-     * @param int $userProfileId
-     * @param int $expected
+     * @param  int  $userId
+     * @param  int  $userGroupId
+     * @param  int  $userProfileId
+     * @param  int  $expected
      *
      * @throws ConstraintException
      * @throws QueryException
@@ -409,27 +419,10 @@ class ItemPresetRepositoryTest extends DatabaseTestCase
 
         $this->assertEquals(1, $result->getNumRows());
 
-        /** @var ItemPresetData $data */
+        /** @var ItemPreset $data */
         $data = $result->getData();
 
-        $this->assertInstanceOf(ItemPresetData::class, $data);
+        $this->assertInstanceOf(ItemPreset::class, $data);
         $this->assertEquals($expected, $data->getId());
-    }
-
-    /**
-     * @return array
-     */
-    public function userDataProvider()
-    {
-        return [
-            [1, 1, 1, 3],
-            [1, 2, 2, 1],
-            [1, 1, 3, 2],
-            [2, 2, 2, 2],
-            [2, 2, 3, 2],
-            [2, 1, 3, 2],
-            [3, 1, 1, 3],
-            [3, 1, 2, 2],
-        ];
     }
 }

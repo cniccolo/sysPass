@@ -1,11 +1,33 @@
 <?php
-/**
- * @var ThemeIcons $icons
- * @var callable   $_getvar
- * @var ConfigData $configData
+/*
+ * sysPass
+ *
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
+ *
+ * This file is part of sysPass.
+ *
+ * sysPass is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * sysPass is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use SP\Config\ConfigData;
+/**
+ * @var ThemeIcons                     $icons
+ * @var callable                       $_getvar
+ * @var \SP\Domain\Config\Ports\ConfigDataInterface $configData
+ */
+
 use SP\Core\UI\ThemeIcons;
 
 ?>
@@ -24,16 +46,14 @@ use SP\Core\UI\ThemeIcons;
                            title="<?php echo __('Edit Account'); ?>"
                            data-action-route="account/edit"
                            data-item-id="<?php echo $account->id; ?>"
-                           data-onclick="account/edit"
-                           data-action-sk="<?php echo $_getvar('sk'); ?>">
+                           data-onclick="account/edit">
                             <?php echo $icons->getIconEdit()->getIcon(); ?></i>
 
                         <i class="material-icons btn-action mdl-list__item-icon <?php echo $icons->getIconView()->getClass(); ?>"
                            title="<?php echo __('Account Details'); ?>"
                            data-action-route="account/view"
                            data-item-id="<?php echo $account->id; ?>"
-                           data-onclick="account/view"
-                           data-action-sk="<?php echo $_getvar('sk'); ?>">
+                           data-onclick="account/view">
                         <?php echo $icons->getIconView()->getIcon(); ?></i>
                     </span>
                 </li>

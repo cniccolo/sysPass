@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Repositories;
@@ -32,9 +32,9 @@ use SP\Core\Exceptions\QueryException;
 use SP\Core\Exceptions\SPException;
 use SP\DataModel\CategoryData;
 use SP\DataModel\ItemSearchData;
-use SP\Repositories\Category\CategoryRepository;
-use SP\Repositories\DuplicatedItemException;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\Category\Ports\CategoryRepositoryInterface;
+use SP\Infrastructure\Category\Repositories\CategoryRepository;
+use SP\Infrastructure\Common\Repositories\DuplicatedItemException;
 use SP\Tests\DatabaseTestCase;
 use stdClass;
 use function SP\Tests\setupContext;
@@ -49,7 +49,7 @@ use function SP\Tests\setupContext;
 class CategoryRepositoryTest extends DatabaseTestCase
 {
     /**
-     * @var CategoryRepository
+     * @var \SP\Domain\Category\Ports\CategoryRepositoryInterface
      */
     private static $repository;
 
@@ -58,14 +58,11 @@ class CategoryRepositoryTest extends DatabaseTestCase
      * @throws ContextException
      * @throws DependencyException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(CategoryRepository::class);
@@ -164,7 +161,7 @@ class CategoryRepositoryTest extends DatabaseTestCase
      */
     public function testGetAll()
     {
-        $count = $this->conn->getRowCount('Category');
+        $count = self::getRowCount('Category');
 
         $result = self::$repository->getAll();
         $this->assertEquals($count, $result->getNumRows());
@@ -224,11 +221,11 @@ class CategoryRepositoryTest extends DatabaseTestCase
      */
     public function testDeleteByIdBatch()
     {
-        $countBefore = $this->conn->getRowCount('Category');
+        $countBefore = self::getRowCount('Category');
 
         $this->assertEquals(1, self::$repository->deleteByIdBatch([3]));
 
-        $countAfter = $this->conn->getRowCount('Category');
+        $countAfter = self::getRowCount('Category');
 
         $this->assertEquals($countBefore - 1, $countAfter);
 
@@ -246,7 +243,7 @@ class CategoryRepositoryTest extends DatabaseTestCase
      */
     public function testCreate()
     {
-        $countBefore = $this->conn->getRowCount('Category');
+        $countBefore = self::getRowCount('Category');
 
         $categoryData = new CategoryData();
         $categoryData->name = 'Categoría prueba';
@@ -260,7 +257,7 @@ class CategoryRepositoryTest extends DatabaseTestCase
 
         $this->assertEquals($categoryData->name, $data->getName());
 
-        $countAfter = $this->conn->getRowCount('Category');
+        $countAfter = self::getRowCount('Category');
 
         $this->assertEquals($countBefore + 1, $countAfter);
     }
@@ -273,11 +270,11 @@ class CategoryRepositoryTest extends DatabaseTestCase
      */
     public function testDelete()
     {
-        $countBefore = $this->conn->getRowCount('Category');
+        $countBefore = self::getRowCount('Category');
 
         $this->assertEquals(1, self::$repository->delete(3));
 
-        $countAfter = $this->conn->getRowCount('Category');
+        $countAfter = self::getRowCount('Category');
 
         $this->assertEquals($countBefore - 1, $countAfter);
 

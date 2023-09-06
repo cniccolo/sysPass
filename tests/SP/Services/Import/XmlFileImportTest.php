@@ -25,10 +25,10 @@
 namespace SP\Tests\Services\Import;
 
 use PHPUnit\Framework\TestCase;
-use SP\Services\Import\FileImport;
-use SP\Services\Import\ImportException;
-use SP\Services\Import\XmlFileImport;
-use SP\Storage\File\FileException;
+use SP\Domain\Import\Services\FileImport;
+use SP\Domain\Import\Services\ImportException;
+use SP\Domain\Import\Services\XmlFileImport;
+use SP\Infrastructure\File\FileException;
 
 /**
  * Class XmlFileImportTest
@@ -44,13 +44,13 @@ class XmlFileImportTest extends TestCase
      */
     public function testDetectXMLFormat()
     {
-        $file = RESOURCE_DIR . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass.xml';
+        $file = RESOURCE_PATH . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_syspass.xml';
 
         $import = new XmlFileImport(FileImport::fromFilesystem($file));
 
         $this->assertEquals('syspass', $import->detectXMLFormat());
 
-        $file = RESOURCE_DIR . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_keepass.xml';
+        $file = RESOURCE_PATH . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_keepass.xml';
 
         $import = new XmlFileImport(FileImport::fromFilesystem($file));
 
@@ -63,7 +63,7 @@ class XmlFileImportTest extends TestCase
      */
     public function testInvalidFile()
     {
-        $file = RESOURCE_DIR . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data.csv';
+        $file = RESOURCE_PATH . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data.csv';
 
         $this->expectException(ImportException::class);
 
@@ -76,7 +76,7 @@ class XmlFileImportTest extends TestCase
      */
     public function testEmptyFile()
     {
-        $file = RESOURCE_DIR . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_empty.xml';
+        $file = RESOURCE_PATH . DIRECTORY_SEPARATOR . 'import' . DIRECTORY_SEPARATOR . 'data_empty.xml';
 
         $import = new XmlFileImport(FileImport::fromFilesystem($file));
 

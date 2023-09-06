@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2019, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,15 +19,15 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Modules\Web\Controllers\Traits;
 
 use Exception;
-use SP\Bootstrap;
-use SP\Config\Config;
-use SP\Config\ConfigData;
+use SP\Core\Bootstrap\BootstrapBase;
+use SP\Domain\Config\Ports\ConfigDataInterface;
+use SP\Domain\Config\Ports\ConfigInterface;
 use SP\Http\JsonResponse;
 use SP\Util\Util;
 
@@ -43,14 +43,13 @@ trait ConfigTrait
     /**
      * Guardar la configuración
      *
-     * @param ConfigData    $configData
-     * @param Config        $config
-     * @param callable|null $onSuccess
-     *
-     * @return bool
+     * @throws \JsonException
      */
-    protected function saveConfig(ConfigData $configData, Config $config, callable $onSuccess = null)
-    {
+    protected function saveConfig(
+        ConfigDataInterface $configData,
+        ConfigInterface $config,
+        callable $onSuccess = null
+    ): bool {
         try {
             if ($configData->isDemoEnabled()) {
                 return $this->returnJsonResponse(JsonResponse::JSON_WARNING, __u('Ey, this is a DEMO!!'));
@@ -58,7 +57,7 @@ trait ConfigTrait
 
             $config->saveConfig($configData);
 
-            if ($configData->isMaintenance() === false && Bootstrap::$LOCK !== false) {
+            if (BootstrapBase::$LOCK !== false && $configData->isMaintenance() === false) {
                 Util::unlockApp();
             }
 
@@ -70,7 +69,11 @@ trait ConfigTrait
         } catch (Exception $e) {
             processException($e);
 
-            return $this->returnJsonResponse(JsonResponse::JSON_ERROR, __u('Error while saving the configuration'));
+            return $this->returnJsonResponse(
+                JsonResponse::JSON_ERROR,
+                __u('Error while saving the configuration'),
+                [$e]
+            );
         }
     }
 }

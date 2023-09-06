@@ -1,10 +1,10 @@
 <?php
-/**
+/*
  * sysPass
  *
- * @author    nuxsmin
- * @link      https://syspass.org
- * @copyright 2012-2018, Rubén Domínguez nuxsmin@$syspass.org
+ * @author nuxsmin
+ * @link https://syspass.org
+ * @copyright 2012-2022, Rubén Domínguez nuxsmin@$syspass.org
  *
  * This file is part of sysPass.
  *
@@ -19,7 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *  along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
+ * along with sysPass.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace SP\Tests\Repositories;
@@ -36,10 +36,10 @@ use SP\Core\Exceptions\SPException;
 use SP\DataModel\ItemSearchData;
 use SP\DataModel\UserData;
 use SP\DataModel\UserPreferencesData;
-use SP\Repositories\DuplicatedItemException;
-use SP\Repositories\User\UserRepository;
-use SP\Services\User\UpdatePassRequest;
-use SP\Storage\Database\DatabaseConnectionData;
+use SP\Domain\User\Ports\UserRepositoryInterface;
+use SP\Domain\User\Services\UpdatePassRequest;
+use SP\Infrastructure\Common\Repositories\DuplicatedItemException;
+use SP\Infrastructure\User\Repositories\UserRepository;
 use SP\Tests\DatabaseTestCase;
 use stdClass;
 use function SP\Tests\setupContext;
@@ -55,7 +55,7 @@ class UserRepositoryTest extends DatabaseTestCase
 {
 
     /**
-     * @var UserRepository
+     * @var UserRepositoryInterface
      */
     private static $repository;
 
@@ -64,14 +64,11 @@ class UserRepositoryTest extends DatabaseTestCase
      * @throws NotFoundException
      * @throws ContextException
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $dic = setupContext();
 
-        self::$dataset = 'syspass.xml';
-
-        // Datos de conexión a la BBDD
-        self::$databaseConnectionData = $dic->get(DatabaseConnectionData::class);
+        self::$loadFixtures = true;
 
         // Inicializar el repositorio
         self::$repository = $dic->get(UserRepository::class);
@@ -149,7 +146,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $this->assertEquals('sysPass demo', $data->getName());
         $this->assertEquals('demo', $data->getLogin());
 
-        $result = self::$repository->getById(5);
+        $result = self::$repository->getById(10);
 
         $this->assertEquals(0, $result->getNumRows());
     }
@@ -212,7 +209,7 @@ class UserRepositoryTest extends DatabaseTestCase
      */
     public function testGetByIdBatch()
     {
-        $users = self::$repository->getByIdBatch([1, 2, 5]);
+        $users = self::$repository->getByIdBatch([1, 2, 10])->getDataAsArray();
 
         $this->assertCount(2, $users);
         $this->assertInstanceOf(UserData::class, $users[0]);
@@ -230,7 +227,7 @@ class UserRepositoryTest extends DatabaseTestCase
     {
         $users = self::$repository->getAll();
 
-        $this->assertCount(4, $users);
+        $this->assertCount(5, $users);
         $this->assertInstanceOf(UserData::class, $users[0]);
         $this->assertEquals('admin', $users[0]->getLogin());
     }
@@ -301,10 +298,10 @@ class UserRepositoryTest extends DatabaseTestCase
      */
     public function testDelete()
     {
-        $result = self::$repository->delete(3);
+        $result = self::$repository->delete(4);
 
         $this->assertEquals(1, $result);
-        $this->assertEquals(3, $this->conn->getRowCount('User'));
+        $this->assertEquals(4, self::getRowCount('User'));
 
         $this->expectException(ConstraintException::class);
 
@@ -321,11 +318,11 @@ class UserRepositoryTest extends DatabaseTestCase
     {
         $result = self::$repository->getBasicInfo();
 
-        $this->assertEquals(4, $result->getNumRows());
+        $this->assertEquals(5, $result->getNumRows());
 
         $data = $result->getDataAsArray();
 
-        $this->assertCount(4, $data);
+        $this->assertCount(5, $data);
         $this->assertInstanceOf(UserData::class, $data[0]);
     }
 
@@ -418,7 +415,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $userData->setIsLdap(0);
         $userData->setPass(Hash::hashKey('prueba123'));
 
-        $this->assertEquals(5, self::$repository->create($userData));
+        $this->assertEquals(6, self::$repository->create($userData));
 
         $userData->setLogin('demo');
         $userData->setEmail('prueba@syspass.org');
